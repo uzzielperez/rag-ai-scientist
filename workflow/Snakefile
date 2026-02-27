@@ -1,0 +1,15 @@
+RUN_ID = config.get("run_id", "snakemake_run")
+REPO_ROOT = config.get("repo_root", ".")
+
+rule all:
+    input:
+        f"{REPO_ROOT}/runs/{RUN_ID}/summary.json"
+
+rule reliability_loop:
+    output:
+        f"{REPO_ROOT}/runs/{RUN_ID}/summary.json"
+    shell:
+        (
+            "RUN_ID={run_id} "
+            "{repo_root}/scripts/reliability_loop.sh --run-id {run_id}"
+        ).format(run_id=RUN_ID, repo_root=REPO_ROOT)

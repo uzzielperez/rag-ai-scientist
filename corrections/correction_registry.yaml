@@ -1,0 +1,11 @@
+scale_corrections:
+  - metric: N_Lb_to_Lambda_gamma
+    scale: 1.0
+  - metric: N_B0_to_Kst_gamma
+    scale: 1.0
+  - metric: eff_ratio_Lb_over_B0
+    scale: 1.0
+  - metric: frag_ratio_Lb_over_B0
+    scale: 1.0
+  - metric: BR_Lb_to_Lambda_gamma
+    scale: 1.0

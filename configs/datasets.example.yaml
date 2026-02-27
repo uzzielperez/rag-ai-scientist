@@ -1,0 +1,22 @@
+datasets:
+  description: "Seeded examples from 2016 references. Copy to datasets.yaml and edit for your environment."
+  references:
+    signal_data_2016:
+      path: "/eos/lhcb/wg/RD/Lb2L0Gamma/Data/2016/S28-recalib/Lb2L0Gamma_Data_2016_Stripping_MagUp_LL.root"
+      required: false
+    signal_mc_2016:
+      path: "/eos/lhcb/wg/RD/Lb2L0Gamma/MC/2016/15102307/S28-v41r4p4-postcalib/Lb2L0Gamma_MC2016_S28_MagUp.root"
+      required: false
+    norm_data_2016:
+      path: "/eos/lhcb/wg/RD/Lb2L0Gamma/Bd2KstGamma/Data2016-recalib/Bd2KstGamma_S28_MagUp.root"
+      required: false
+    norm_mc_2016:
+      path: "/eos/lhcb/wg/RD/Lb2L0Gamma/Bd2KstGamma/MC2016-S28-v41r4p4-postcalib/Bd2KstGamma_MC_2016_S28_MagUp.root"
+      required: false
+
+bring_your_own_data:
+  enabled: true
+  custom_entries:
+    - name: "my_signal_data"
+      path: "/path/to/my/data.root"
+      required: false

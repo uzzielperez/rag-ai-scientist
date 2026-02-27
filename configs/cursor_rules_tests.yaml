@@ -1,0 +1,11 @@
+tests:
+  - id: rules_smoke_1
+    prompt: "Describe how to run the reliability loop and where logs are written."
+    expected_markers:
+      - reliability_loop.sh
+      - runs/<run_id>/logs/
+  - id: rules_smoke_2
+    prompt: "Explain deterministic checks and output artifact names."
+    expected_markers:
+      - validation_out/checks.json
+      - pass/fail

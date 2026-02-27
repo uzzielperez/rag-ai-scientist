@@ -1,0 +1,21 @@
+metrics:
+  - name: N_Lb_to_Lambda_gamma
+    reference: 65.0
+    tolerance_abs: 26.0
+    message: "Expected within approximately 2 sigma."
+  - name: N_B0_to_Kst_gamma
+    reference: 32670.0
+    tolerance_abs: 580.0
+    message: "Expected within approximately 2 sigma."
+  - name: eff_ratio_Lb_over_B0
+    reference: 0.0201
+    tolerance_abs: 0.0030
+    message: "Efficiency ratio from 2016 reference."
+  - name: frag_ratio_Lb_over_B0
+    reference: 0.60
+    tolerance_abs: 0.10
+    message: "Fragmentation ratio input value check."
+  - name: BR_Lb_to_Lambda_gamma
+    reference: 0.0000071
+    tolerance_abs: 0.0000030
+    message: "Branching ratio consistency check."
