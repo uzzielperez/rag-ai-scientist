@@ -5,6 +5,8 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
+import sys
 from pathlib import Path
 
 import numpy as np
@@ -12,8 +14,19 @@ from mcp.server import Server
 from mcp.types import TextContent, Tool
 from sklearn.feature_extraction.text import TfidfVectorizer
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="[%(levelname)s] %(message)s",
+    stream=sys.stderr,  # keep stdout clean for MCP protocol
+)
+logger = logging.getLogger(__name__)
+
 APP = Server("rag-ai-scientist")
 DB_DIR = Path(__file__).parent / "rag_db"
+
+CHUNKS: list[dict] = []
+VECTORS: np.ndarray | None = None
+VOCAB: dict[str, int] = {}
 
 
 def _load_db() -> tuple[list[dict], np.ndarray, dict]:
@@ -36,6 +49,17 @@ def _load_db() -> tuple[list[dict], np.ndarray, dict]:
     return chunks, vectors, vocab
 
 
+def _init_index() -> None:
+    global CHUNKS, VECTORS, VOCAB
+    logger.info("Loading RAG database into memory...")
+    CHUNKS, VECTORS, VOCAB = _load_db()
+    logger.info(
+        "RAG database loaded: %d chunks, vector shape=%s",
+        len(CHUNKS),
+        tuple(VECTORS.shape),
+    )
+
+
 def _cosine_similarity(query_vec: np.ndarray, vectors: np.ndarray) -> np.ndarray:
     q_norm = np.linalg.norm(query_vec) + 1e-12
     v_norm = np.linalg.norm(vectors, axis=1) + 1e-12
@@ -43,15 +67,17 @@ def _cosine_similarity(query_vec: np.ndarray, vectors: np.ndarray) -> np.ndarray
 
 
 def _search(query: str, top_k: int = 5) -> list[dict]:
-    chunks, vectors, vocab = _load_db()
-    vectorizer = TfidfVectorizer(vocabulary=vocab)
+    if VECTORS is None or not CHUNKS or not VOCAB:
+        raise RuntimeError("RAG DB is not initialized.")
+
+    vectorizer = TfidfVectorizer(vocabulary=VOCAB)
     query_vec = vectorizer.fit_transform([query]).toarray()[0]
-    sims = _cosine_similarity(query_vec, vectors)
+    sims = _cosine_similarity(query_vec, VECTORS)
     top_indices = np.argsort(sims)[::-1][:top_k]
 
     results: list[dict] = []
     for idx in top_indices:
-        row = chunks[int(idx)]
+        row = CHUNKS[int(idx)]
         results.append(
             {
                 "score": float(sims[idx]),
@@ -154,6 +180,10 @@ async def call_tool(name: str, arguments: dict) -> list[TextContent]:
 
 async def main() -> None:
     from mcp.server.stdio import stdio_server
+
+    logger.info("Initializing MCP server components...")
+    await asyncio.to_thread(_init_index)
+    logger.info("MCP server ready - waiting for connections...")
 
     async with stdio_server() as (read_stream, write_stream):
         await APP.run(read_stream, write_stream, APP.create_initialization_options())

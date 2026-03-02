@@ -35,6 +35,20 @@ python .cursor/index_documents.py
 bash .cursor/run_mcp_server.sh
 ```
 
+Expected MCP startup output now includes:
+
+- `Initializing MCP server components...`
+- `Loading RAG database into memory...`
+- `RAG database loaded: ...`
+- `MCP server ready - waiting for connections...`
+
+`run_mcp_server.sh` automatically prefers `/afs/cern.ch/user/c/ciperez/mcp_env/bin/python` when available.
+You can override interpreter selection with:
+
+```bash
+MCP_PYTHON=/path/to/python bash .cursor/run_mcp_server.sh
+```
+
 ## What this repository provides
 
 - A one-command reliability loop (`scripts/reliability_loop.sh`).
@@ -114,6 +128,8 @@ Supported stages:
    - `python .cursor/index_documents.py --force`
 5. Start MCP server (after indexing completes):
    - `bash .cursor/run_mcp_server.sh`
+   - If startup fails with `ModuleNotFoundError: No module named 'mcp'`, verify the interpreter:
+     - `MCP_PYTHON=/afs/cern.ch/user/c/ciperez/mcp_env/bin/python bash .cursor/run_mcp_server.sh`
 
 Example `configs/references.yaml` entry:
 

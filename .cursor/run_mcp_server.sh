@@ -33,15 +33,34 @@ fi
 
 # Python resolution order:
 # 1) MCP_PYTHON env var (explicit override)
-# 2) dedicated default venv for this user
+# 2) project-local virtualenvs
 # 3) active virtualenv python
 # 4) python, then python3 from PATH
-DEFAULT_MCP_PYTHON="/afs/cern.ch/user/c/ciperez/mcp_env/bin/python"
+PROJECT_LOCAL_VENVS=(
+  "${SCRIPT_DIR}/.venv/bin/python"
+  "${SCRIPT_DIR}/venv/bin/python"
+  "${SCRIPT_DIR}/mcp_env/bin/python"
+)
+USER_MCP_VENV="/afs/cern.ch/user/c/ciperez/mcp_env/bin/python"
+
 if [[ -n "${MCP_PYTHON:-}" ]]; then
   PYTHON_CMD="${MCP_PYTHON}"
-elif [[ -x "${DEFAULT_MCP_PYTHON}" ]]; then
-  PYTHON_CMD="${DEFAULT_MCP_PYTHON}"
-  echo "Using MCP virtual environment..."
+else
+  PYTHON_CMD=""
+  for candidate in "${PROJECT_LOCAL_VENVS[@]}"; do
+    if [[ -x "${candidate}" ]]; then
+      PYTHON_CMD="${candidate}"
+      echo "Using project virtual environment: ${candidate}"
+      break
+    fi
+  done
+fi
+
+if [[ -n "${PYTHON_CMD}" ]]; then
+  :
+elif [[ -x "${USER_MCP_VENV}" ]]; then
+  PYTHON_CMD="${USER_MCP_VENV}"
+  echo "Using user MCP virtual environment: ${USER_MCP_VENV}"
 elif [[ -n "${VIRTUAL_ENV:-}" && -x "${VIRTUAL_ENV}/bin/python" ]]; then
   PYTHON_CMD="${VIRTUAL_ENV}/bin/python"
 elif command -v python >/dev/null 2>&1; then
