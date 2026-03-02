@@ -24,8 +24,6 @@ Equivalent explicit steps:
 ```bash
 python -m pip install -r requirements.txt
 python -m pip install -r .cursor/requirements.txt
-mkdir -p .cursor
-touch .cursorrules
 python .cursor/index_documents.py
 ./scripts/reliability_loop.sh
 ```
@@ -55,15 +53,12 @@ bash .cursor/run_mcp_server.sh
    - `source ~/mcp_env/bin/activate`
 2. Install dependencies:
    - `python -m pip install --upgrade pip`
-3. Ensure Cursor project files exist in this repo:
-   - `mkdir -p .cursor`
-   - `touch .cursorrules`
-4. Copy editable configs:
+3. Copy editable configs:
    - `cp configs/datasets.example.yaml configs/datasets.yaml`
    - `cp configs/references.example.yaml configs/references.yaml`
-5. Run one-command setup for dependencies + RAG index:
+4. Run one-command setup for dependencies + RAG index:
    - `bash .cursor/setup_rag.sh`
-6. Run the full reliability loop:
+5. Run the full reliability loop:
    - `./scripts/reliability_loop.sh`
 
 If you see `OSError: [Errno 30] Read-only file system` pointing to `/cvmfs/.../site-packages`,
@@ -105,6 +100,28 @@ Supported stages:
 - Default 2016 references are provided in `configs/datasets.example.yaml`.
 - Users can provide custom AFS/EOS/local data paths in `configs/datasets.yaml`.
 - Seed and custom references for RAG are configured in `configs/references.yaml`.
+
+### Add your own files to RAG
+
+1. Put your files in a readable location (recommended shared location):
+   - `/afs/cern.ch/user/<username>/public/my_references/`
+   - Avoid `/work/.../private/...` paths if collaborators need access.
+2. Add those paths to `configs/references.yaml` under `sources[].paths`.
+3. Set matching `extensions` for your files (for example: `.pdf`, `.md`, `.txt`, `.tex`, `.py`).
+4. Rebuild the index:
+   - `source ~/mcp_env/bin/activate`
+   - `python .cursor/index_documents.py --force`
+
+Example `configs/references.yaml` entry:
+
+```yaml
+sources:
+  - name: "my_references"
+    paths:
+      - "/afs/cern.ch/user/<username>/public/my_references/papers"
+      - "/afs/cern.ch/user/<username>/public/my_references/notes.md"
+    extensions: [".pdf", ".md", ".txt", ".tex"]
+```
 
 ## Key outputs
 
