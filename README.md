@@ -45,8 +45,11 @@ bash .cursor/run_mcp_server.sh
 
 ## Quick start
 
-1. Create or activate your Python environment.
+1. Create or activate your Python environment (recommended on lxplus/CVMFS):
+   - `python3 -m venv ~/mcp_env`
+   - `source ~/mcp_env/bin/activate`
 2. Install dependencies:
+   - `python -m pip install --upgrade pip`
    - `python -m pip install -r requirements.txt`
 3. Ensure Cursor project files exist in this repo:
    - `mkdir -p .cursor`
@@ -58,6 +61,15 @@ bash .cursor/run_mcp_server.sh
    - `./scripts/build_rag_db.sh`
 6. Run the full reliability loop:
    - `./scripts/reliability_loop.sh`
+
+If you see `OSError: [Errno 30] Read-only file system` pointing to `/cvmfs/.../site-packages`,
+`pip` is using the read-only LCG/CVMFS Python. Reactivate your venv and verify:
+
+- `source ~/mcp_env/bin/activate`
+- `which python`
+- `python -m pip -V`
+
+`python -m pip -V` should point to `~/mcp_env/...`, not `/cvmfs/...`.
 
 ## One-command run
 
