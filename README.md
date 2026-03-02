@@ -42,7 +42,7 @@ Expected MCP startup output now includes:
 - `RAG database loaded: ...`
 - `MCP server ready - waiting for connections...`
 
-`run_mcp_server.sh` automatically prefers `/afs/cern.ch/user/c/ciperez/mcp_env/bin/python` when available.
+`run_mcp_server.sh` automatically prefers `~/mcp_env/bin/python` when available.
 You can override interpreter selection with:
 
 ```bash
@@ -129,7 +129,7 @@ Supported stages:
 5. Start MCP server (after indexing completes):
    - `bash .cursor/run_mcp_server.sh`
    - If startup fails with `ModuleNotFoundError: No module named 'mcp'`, verify the interpreter:
-     - `MCP_PYTHON=/afs/cern.ch/user/c/ciperez/mcp_env/bin/python bash .cursor/run_mcp_server.sh`
+     - `MCP_PYTHON=~/mcp_env/bin/python bash .cursor/run_mcp_server.sh`
 
 Example `configs/references.yaml` entry:
 

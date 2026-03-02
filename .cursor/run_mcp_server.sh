@@ -41,7 +41,7 @@ PROJECT_LOCAL_VENVS=(
   "${SCRIPT_DIR}/venv/bin/python"
   "${SCRIPT_DIR}/mcp_env/bin/python"
 )
-USER_MCP_VENV="/afs/cern.ch/user/c/ciperez/mcp_env/bin/python"
+USER_MCP_VENV="${HOME}/mcp_env/bin/python"
 
 if [[ -n "${MCP_PYTHON:-}" ]]; then
   PYTHON_CMD="${MCP_PYTHON}"
