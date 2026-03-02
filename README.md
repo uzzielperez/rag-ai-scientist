@@ -7,6 +7,11 @@ Agentic RAG scientist repo for reliability-loop development, reproducible analys
 From this repository root:
 
 ```bash
+# Environment first (important on lxplus/CVMFS)
+python3 -m venv ~/mcp_env
+source ~/mcp_env/bin/activate
+python -m pip install --upgrade pip
+
 # One-command setup + local RAG build
 bash .cursor/setup_rag.sh
 
