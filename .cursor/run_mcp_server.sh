@@ -2,12 +2,23 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-MCP_PYTHON="/afs/cern.ch/user/c/ciperez/mcp_env/bin/python"
 
-if [[ -x "${MCP_PYTHON}" ]]; then
+# Python resolution order:
+# 1) MCP_PYTHON env var (explicit override)
+# 2) active virtualenv python
+# 3) python, then python3 from PATH
+if [[ -n "${MCP_PYTHON:-}" ]]; then
   PYTHON_CMD="${MCP_PYTHON}"
+elif [[ -n "${VIRTUAL_ENV:-}" && -x "${VIRTUAL_ENV}/bin/python" ]]; then
+  PYTHON_CMD="${VIRTUAL_ENV}/bin/python"
+elif command -v python >/dev/null 2>&1; then
+  PYTHON_CMD="$(command -v python)"
+elif command -v python3 >/dev/null 2>&1; then
+  PYTHON_CMD="$(command -v python3)"
 else
-  PYTHON_CMD="python3"
+  echo "Error: no Python interpreter found." >&2
+  echo "Activate a venv first (e.g. source ~/mcp_env/bin/activate)." >&2
+  exit 1
 fi
 
 mkdir -p "${SCRIPT_DIR}/.cache"
