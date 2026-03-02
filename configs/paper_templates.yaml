@@ -1,0 +1,7 @@
+drafts:
+  - name: paper_basic
+    template_dir: ./papers/templates/basic/paper
+    main_file: main.tex
+  - name: tdr_basic
+    template_dir: ./papers/templates/basic/tdr
+    main_file: main.tex

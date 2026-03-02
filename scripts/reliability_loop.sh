@@ -5,6 +5,7 @@ STAGES=(
   "execution"
   "deterministic_validation"
   "human_reports"
+  "paper_drafts"
   "cursor_rules"
   "corrections"
   "integration_summary"
@@ -26,6 +27,7 @@ Stages:
   execution
   deterministic_validation
   human_reports
+  paper_drafts
   cursor_rules
   corrections
   integration_summary
@@ -61,7 +63,7 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-mkdir -p "${LOG_DIR}" "${ARTIFACT_DIR}" "${REPO_ROOT}/validation_out/rules" "${REPO_ROOT}/validation_out/reports/${RUN_ID}" "${RUN_DIR}/corrections"
+mkdir -p "${LOG_DIR}" "${ARTIFACT_DIR}" "${REPO_ROOT}/validation_out/rules" "${REPO_ROOT}/validation_out/reports/${RUN_ID}" "${RUN_DIR}/corrections" "${RUN_DIR}/papers"
 
 index_of() {
   local needle="$1"
@@ -109,6 +111,13 @@ run_stage() {
         --checks "${REPO_ROOT}/validation_out/checks.json" \
         --run-id "${RUN_ID}" \
         --output-dir "${REPO_ROOT}/validation_out/reports/${RUN_ID}" >>"${log_file}" 2>&1
+      ;;
+    paper_drafts)
+      python "${REPO_ROOT}/scripts/update_paper_drafts.py" \
+        --checks "${REPO_ROOT}/validation_out/checks.json" \
+        --run-id "${RUN_ID}" \
+        --templates-config "${REPO_ROOT}/configs/paper_templates.yaml" \
+        --output-dir "${RUN_DIR}/papers" >>"${log_file}" 2>&1
       ;;
     cursor_rules)
       python "${REPO_ROOT}/scripts/write_smoke_results.py" \

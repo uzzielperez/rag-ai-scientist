@@ -24,7 +24,9 @@
    - `validation_out/rules/<run_id>.json`
 4. Check report bundle:
    - `validation_out/reports/<run_id>/index.html`
-5. Check correction provenance:
+5. Check generated paper/TDR drafts:
+   - `runs/<run_id>/papers/manifest.json`
+6. Check correction provenance:
    - `runs/<run_id>/corrections/provenance.json`
 
 ## Optional Snakemake orchestration
