@@ -1,0 +1,31 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{hyperref}
+
+\title{Technical Design Report (Draft)}
+\author{Analysis Team}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section*{Auto-updated metadata}
+\begin{itemize}
+  \item Run ID: {{RUN_ID}}
+  \item Generated UTC: {{GENERATED_UTC}}
+  \item Reliability summary: {{CHECKS_SUMMARY}}
+\end{itemize}
+
+\section{Scope}
+Describe the current implementation status, assumptions, and interfaces.
+
+\section{Validation snapshot}
+\begin{itemize}
+  \item $N(\Lambda_b \rightarrow \Lambda \gamma)$: {{N_LB_TO_LAMBDA_GAMMA}}
+  \item $N(B^0 \rightarrow K^{*}\gamma)$: {{N_B0_TO_KST_GAMMA}}
+\end{itemize}
+
+\section{Future extensions}
+Users may add experiment-specific TDR templates under `papers/templates/`.
+
+\end{document}

@@ -18,6 +18,12 @@
 - [ ] Open `validation_out/reports/<run_id>/index.html`
 - [ ] Verify table rows and status values render correctly
 
+## Paper and TDR draft updates
+
+- [ ] Run until `paper_drafts`
+- [ ] Confirm `runs/<run_id>/papers/manifest.json` exists
+- [ ] Open generated `main.tex` files and verify placeholders are resolved
+
 ## Cursor rules checks
 
 - [ ] Run until `cursor_rules`

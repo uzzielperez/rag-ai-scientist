@@ -1,13 +1,14 @@
 # Pipeline
 
-The reliability loop has six stages:
+The reliability loop has seven stages:
 
 1. `execution`
 2. `deterministic_validation`
 3. `human_reports`
-4. `cursor_rules`
-5. `corrections`
-6. `integration_summary`
+4. `paper_drafts`
+5. `cursor_rules`
+6. `corrections`
+7. `integration_summary`
 
 ## Command interface
 
@@ -45,7 +46,18 @@ The reliability loop has six stages:
   - `validation_out/reports/<run_id>/report.json`
   - `runs/<run_id>/logs/human_reports.log`
 
-### D) Cursor rules checks
+### D) Paper drafts and TDR updates
+
+- CLI: `python scripts/update_paper_drafts.py ...`
+- Inputs:
+  - `validation_out/checks.json`
+  - `configs/paper_templates.yaml`
+- Outputs:
+  - `runs/<run_id>/papers/manifest.json`
+  - `runs/<run_id>/papers/<draft_name>/main.tex`
+  - `runs/<run_id>/logs/paper_drafts.log`
+
+### E) Cursor rules checks
 
 - CLI: `python validation/check_cursor_rules.py ...`
 - Inputs:
@@ -55,7 +67,7 @@ The reliability loop has six stages:
   - `validation_out/rules/<run_id>.json`
   - `runs/<run_id>/logs/cursor_rules.log`
 
-### E) Corrections layer
+### F) Corrections layer
 
 - CLI: `python corrections/apply_corrections.py ...`
 - Inputs:
@@ -66,7 +78,7 @@ The reliability loop has six stages:
   - `runs/<run_id>/corrections/provenance.json`
   - `runs/<run_id>/logs/corrections.log`
 
-### F) Integration summary
+### G) Integration summary
 
 - CLI: `python scripts/summarize_run.py ...`
 - Inputs: artifacts from stages B-E
