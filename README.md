@@ -28,9 +28,10 @@ python .cursor/index_documents.py
 ./scripts/reliability_loop.sh
 ```
 
-If you also want to start the MCP server from this repo:
+If you want to use MCP tools from this repo, always index first and then start the server:
 
 ```bash
+python .cursor/index_documents.py
 bash .cursor/run_mcp_server.sh
 ```
 
@@ -111,6 +112,8 @@ Supported stages:
 4. Rebuild the index:
    - `source ~/mcp_env/bin/activate`
    - `python .cursor/index_documents.py --force`
+5. Start MCP server (after indexing completes):
+   - `bash .cursor/run_mcp_server.sh`
 
 Example `configs/references.yaml` entry:
 
