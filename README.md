@@ -55,15 +55,14 @@ bash .cursor/run_mcp_server.sh
    - `source ~/mcp_env/bin/activate`
 2. Install dependencies:
    - `python -m pip install --upgrade pip`
-   - `python -m pip install -r requirements.txt`
 3. Ensure Cursor project files exist in this repo:
    - `mkdir -p .cursor`
    - `touch .cursorrules`
 4. Copy editable configs:
    - `cp configs/datasets.example.yaml configs/datasets.yaml`
    - `cp configs/references.example.yaml configs/references.yaml`
-5. Build the local RAG database:
-   - `./scripts/build_rag_db.sh`
+5. Run one-command setup for dependencies + RAG index:
+   - `bash .cursor/setup_rag.sh`
 6. Run the full reliability loop:
    - `./scripts/reliability_loop.sh`
 
@@ -75,6 +74,7 @@ If you see `OSError: [Errno 30] Read-only file system` pointing to `/cvmfs/.../s
 - `python -m pip -V`
 
 `python -m pip -V` should point to `~/mcp_env/...`, not `/cvmfs/...`.
+`.cursor/setup_rag.sh` now checks this and exits early if pip resolves to `/cvmfs/...`.
 
 ## One-command run
 

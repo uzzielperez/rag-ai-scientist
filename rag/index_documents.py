@@ -85,7 +85,9 @@ def main() -> None:
         encoding="utf-8",
     )
     (out_dir / "vectors.json").write_text(json.dumps(matrix.tolist()), encoding="utf-8")
-    (out_dir / "vocab.json").write_text(json.dumps(vectorizer.vocabulary_, sort_keys=True), encoding="utf-8")
+    # Cast vocabulary indices to native int for JSON serialization compatibility.
+    serializable_vocab = {token: int(index) for token, index in vectorizer.vocabulary_.items()}
+    (out_dir / "vocab.json").write_text(json.dumps(serializable_vocab, sort_keys=True), encoding="utf-8")
     (out_dir / "meta.json").write_text(
         json.dumps(
             {
