@@ -1,11 +1,11 @@
 sources:
   - name: "seeded_analysis_docs"
     paths:
-      - "/afs/cern.ch/work/c/ciperez/private/lb02lbgammabr/README.md"
-      - "/afs/cern.ch/work/c/ciperez/private/lb02lbgammabr/docs/HACKATHON_TASK_BOARD.md"
-      - "/afs/cern.ch/work/c/ciperez/private/lb02lbgammabr/docs/rag_system_paper.tex"
-      - "/afs/cern.ch/work/c/ciperez/private/lb02lbgammabr/data/README.md"
-      - "/afs/cern.ch/work/c/ciperez/private/lb02lbgammabr/data/samplelist.py"
+      - "/afs/cern.ch/user/c/ciperez/public/lb02lbgammabr/README.md"
+      - "/afs/cern.ch/user/c/ciperez/public/lb02lbgammabr/docs/HACKATHON_TASK_BOARD.md"
+      - "/afs/cern.ch/user/c/ciperez/public/lb02lbgammabr/docs/rag_system_paper.tex"
+      - "/afs/cern.ch/user/c/ciperez/public/lb02lbgammabr/data/README.md"
+      - "/afs/cern.ch/user/c/ciperez/public/lb02lbgammabr/data/samplelist.py"
     extensions:
       - ".md"
       - ".txt"
