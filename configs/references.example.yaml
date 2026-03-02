@@ -13,8 +13,8 @@ sources:
       - ".py"
   - name: "user_references"
     paths:
-      - "/path/to/my/papers"
-      - "/path/to/my/notes.md"
+      - "/afs/cern.ch/user/c/ciperez/public/my_references/papers"
+      - "/afs/cern.ch/user/c/ciperez/public/my_references/notes.md"
     extensions:
       - ".pdf"
       - ".md"
