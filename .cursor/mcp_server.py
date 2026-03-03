@@ -9,10 +9,14 @@ import logging
 import sys
 from pathlib import Path
 
-import numpy as np
 from mcp.server import Server
 from mcp.types import TextContent, Tool
-from sklearn.feature_extraction.text import TfidfVectorizer
+from langchain_huggingface import HuggingFaceEmbeddings
+
+try:
+    from langchain_chroma import Chroma
+except ImportError:  # pragma: no cover - compatibility fallback
+    from langchain_community.vectorstores import Chroma
 
 logging.basicConfig(
     level=logging.INFO,
@@ -23,67 +27,54 @@ logger = logging.getLogger(__name__)
 
 APP = Server("rag-ai-scientist")
 DB_DIR = Path(__file__).parent / "rag_db"
-
-CHUNKS: list[dict] = []
-VECTORS: np.ndarray | None = None
-VOCAB: dict[str, int] = {}
-
-
-def _load_db() -> tuple[list[dict], np.ndarray, dict]:
-    chunks_path = DB_DIR / "chunks.jsonl"
-    vectors_path = DB_DIR / "vectors.json"
-    vocab_path = DB_DIR / "vocab.json"
-
-    if not (chunks_path.exists() and vectors_path.exists() and vocab_path.exists()):
-        raise FileNotFoundError(
-            "Missing RAG DB files. Build first with: ./scripts/build_rag_db.sh"
-        )
-
-    chunks = [
-        json.loads(line)
-        for line in chunks_path.read_text(encoding="utf-8").splitlines()
-        if line.strip()
-    ]
-    vectors = np.array(json.loads(vectors_path.read_text(encoding="utf-8")))
-    vocab = json.loads(vocab_path.read_text(encoding="utf-8"))
-    return chunks, vectors, vocab
+VECTORSTORE: Chroma | None = None
 
 
 def _init_index() -> None:
-    global CHUNKS, VECTORS, VOCAB
-    logger.info("Loading RAG database into memory...")
-    CHUNKS, VECTORS, VOCAB = _load_db()
-    logger.info(
-        "RAG database loaded: %d chunks, vector shape=%s",
-        len(CHUNKS),
-        tuple(VECTORS.shape),
+    global VECTORSTORE
+
+    if not DB_DIR.exists():
+        raise FileNotFoundError(
+            f"Missing RAG DB directory at {DB_DIR}. Build first with: python .cursor/index_documents.py --force"
+        )
+
+    logger.info("Loading Hugging Face embedding model...")
+    embeddings = HuggingFaceEmbeddings(
+        model_name="sentence-transformers/all-MiniLM-L6-v2",
+        model_kwargs={"device": "cpu"},
+        encode_kwargs={"normalize_embeddings": True},
     )
+    logger.info("Embedding model ready.")
+
+    logger.info("Opening Chroma vector store...")
+    VECTORSTORE = Chroma(
+        persist_directory=str(DB_DIR),
+        collection_name="rag-ai-scientist",
+        embedding_function=embeddings,
+    )
+    logger.info("Vector store ready.")
 
 
-def _cosine_similarity(query_vec: np.ndarray, vectors: np.ndarray) -> np.ndarray:
-    q_norm = np.linalg.norm(query_vec) + 1e-12
-    v_norm = np.linalg.norm(vectors, axis=1) + 1e-12
-    return (vectors @ query_vec) / (v_norm * q_norm)
-
-
-def _search(query: str, top_k: int = 5) -> list[dict]:
-    if VECTORS is None or not CHUNKS or not VOCAB:
+def _search(query: str, top_k: int = 5, papers_only: bool = False) -> list[dict]:
+    if VECTORSTORE is None:
         raise RuntimeError("RAG DB is not initialized.")
 
-    vectorizer = TfidfVectorizer(vocabulary=VOCAB)
-    query_vec = vectorizer.fit_transform([query]).toarray()[0]
-    sims = _cosine_similarity(query_vec, VECTORS)
-    top_indices = np.argsort(sims)[::-1][:top_k]
+    if papers_only:
+        docs_and_scores = VECTORSTORE.similarity_search_with_score(
+            query, k=top_k, filter={"source_type": "paper"}
+        )
+    else:
+        docs_and_scores = VECTORSTORE.similarity_search_with_score(query, k=top_k)
 
     results: list[dict] = []
-    for idx in top_indices:
-        row = CHUNKS[int(idx)]
+    for doc, distance in docs_and_scores:
+        score = max(0.0, 1.0 - float(distance))
         results.append(
             {
-                "score": float(sims[idx]),
-                "doc_path": row.get("doc_path", "unknown"),
-                "chunk_index": row.get("chunk_index", -1),
-                "text": row.get("text", ""),
+                "score": score,
+                "doc_path": doc.metadata.get("doc_path", "unknown"),
+                "chunk_index": doc.metadata.get("chunk_index", -1),
+                "text": doc.page_content,
             }
         )
     return results
@@ -153,13 +144,12 @@ async def call_tool(name: str, arguments: dict) -> list[TextContent]:
         if name == "search_papers":
             topic = arguments["topic"]
             k = int(arguments.get("k", 5))
-            matches = await asyncio.to_thread(_search, topic, max(k * 3, 10))
-            paper_matches = [m for m in matches if "/papers/" in m["doc_path"]][:k]
-            if not paper_matches:
+            matches = await asyncio.to_thread(_search, topic, k, True)
+            if not matches:
                 return [TextContent(type="text", text="No paper chunks found.")]
 
             lines = []
-            for i, match in enumerate(paper_matches, start=1):
+            for i, match in enumerate(matches, start=1):
                 preview = match["text"].replace("\n", " ")[:260]
                 lines.append(
                     f"[{i}] score={match['score']:.4f} file={match['doc_path']}\n{preview}"
