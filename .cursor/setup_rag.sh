@@ -22,6 +22,9 @@ fi
 
 "${PYTHON_BIN}" -m pip install -r "${REPO_ROOT}/requirements.txt"
 "${PYTHON_BIN}" -m pip install -r "${REPO_ROOT}/.cursor/requirements.txt"
-"${PYTHON_BIN}" "${REPO_ROOT}/.cursor/index_documents.py"
+"${PYTHON_BIN}" "${REPO_ROOT}/.cursor/index_documents.py" --force
 
 echo "RAG setup complete."
+echo "Optional next steps:"
+echo "  bash .cursor/run_mcp_server.sh"
+echo "  python .cursor/ingest.py --title \"My note\" --file note.md --tags notes"

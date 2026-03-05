@@ -5,6 +5,10 @@ __pycache__/
 .mypy_cache/
 
 .cursor/rag_db/
+.cursor/.cache/
+.cursor/.env
 runs/
 validation_out/
 *.log
+.env
+*.root

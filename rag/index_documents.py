@@ -1,107 +1,265 @@
 #!/usr/bin/env python3
-"""Build a lightweight local RAG vector database from configured references."""
+"""Build a local Chroma vector database from configured references."""
 
 from __future__ import annotations
 
 import argparse
 import hashlib
-import json
+import re
+import shutil
 from pathlib import Path
-from typing import Iterable
+from typing import Any
 
+# sqlite workaround for lxplus-like environments
+try:  # pragma: no cover
+    __import__("pysqlite3")
+    import sys
+
+    sys.modules["sqlite3"] = sys.modules.pop("pysqlite3")
+except Exception:  # pragma: no cover
+    pass
+
+import ftfy
+import fitz
+import pymupdf4llm
 import yaml
-from sklearn.feature_extraction.text import TfidfVectorizer
+from langchain_core.documents import Document
+from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from pylatexenc.latex2text import LatexNodes2Text
+
+try:
+    from langchain_chroma import Chroma
+except ImportError:  # pragma: no cover
+    from langchain_community.vectorstores import Chroma
 
 
-def chunk_text(text: str, chunk_size: int, overlap: int) -> list[str]:
-    if not text.strip():
-        return []
-    chunks = []
-    start = 0
-    while start < len(text):
-        end = min(start + chunk_size, len(text))
-        chunks.append(text[start:end])
-        if end == len(text):
-            break
-        start = max(0, end - overlap)
-    return chunks
+LATEX_CONVERTER = LatexNodes2Text(math_mode="text", strict_latex_spaces=False)
 
 
-def iter_paths(config: dict) -> Iterable[Path]:
+def _normalize_path(raw_path: str, base_dir: Path) -> Path:
+    candidate = Path(raw_path).expanduser()
+    if candidate.is_absolute():
+        return candidate
+    return (base_dir / candidate).resolve()
+
+
+def _iter_paths(config: dict[str, Any], config_path: Path) -> list[Path]:
+    base_dir = config_path.parent
+    collected: list[Path] = []
     for group in config.get("sources", []):
         for raw_path in group.get("paths", []):
-            p = Path(raw_path).expanduser()
+            p = _normalize_path(raw_path, base_dir)
             if p.is_file():
-                yield p
+                collected.append(p)
             elif p.is_dir():
                 for ext in group.get("extensions", []):
-                    yield from p.rglob(f"*{ext}")
+                    collected.extend(sorted(p.rglob(f"*{ext}")))
+    return sorted(set(collected))
 
 
-def file_hash(path: Path) -> str:
+def _file_hash(path: Path) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as handle:
         digest.update(handle.read())
     return digest.hexdigest()
 
 
+def _clean_latex_text(text: str) -> str:
+    if not text:
+        return ""
+    text = ftfy.fix_text(text)
+    replacements = {
+        r"\\alpha": "alpha",
+        r"\\beta": "beta",
+        r"\\gamma": "gamma",
+        r"\\delta": "delta",
+        r"\\lambda": "lambda",
+        r"\\mu": "mu",
+        r"\\pi": "pi",
+        r"\\sigma": "sigma",
+        r"\\phi": "phi",
+        r"\\pm": "+/-",
+        r"\\times": "x",
+        r"\\rightarrow": "->",
+        r"\\to": "->",
+        r"\\mathrm\{([^}]+)\}": r"\1",
+        r"\\text\{([^}]+)\}": r"\1",
+        r"\$": "",
+    }
+    for pattern, replacement in replacements.items():
+        text = re.sub(pattern, replacement, text)
+    try:
+        math_pattern = r"\$\$([^$]+)\$\$|\$([^$]+)\$|\\begin\{equation\}(.*?)\\end\{equation\}"
+
+        def convert_math(match: re.Match[str]) -> str:
+            content = match.group(1) or match.group(2) or match.group(3)
+            try:
+                return LATEX_CONVERTER.latex_to_text(content)
+            except Exception:
+                return content
+
+        text = re.sub(math_pattern, convert_math, text, flags=re.DOTALL)
+    except Exception:
+        pass
+    text = re.sub(r"\n{3,}", "\n\n", text)
+    text = re.sub(r" {2,}", " ", text)
+    return text.strip()
+
+
+def _extract_text(path: Path) -> str:
+    if path.suffix.lower() != ".pdf":
+        try:
+            return _clean_latex_text(path.read_text(encoding="utf-8", errors="ignore"))
+        except Exception:
+            return ""
+    try:
+        markdown_text = pymupdf4llm.to_markdown(str(path))
+        return _clean_latex_text(markdown_text)
+    except Exception:
+        try:
+            doc = fitz.open(path)
+            text = "\n\n".join(page.get_text() for page in doc)
+            doc.close()
+            return _clean_latex_text(text)
+        except Exception:
+            return ""
+
+
+def _classify_document(path: Path, rules: dict[str, list[str]]) -> tuple[str, str]:
+    path_str = str(path).lower()
+    source_type = "other"
+    for doc_type, hints in rules.items():
+        if any(h.lower() in path_str for h in hints):
+            source_type = doc_type
+            break
+    if source_type == "other":
+        if path.suffix.lower() == ".py":
+            source_type = "code"
+        elif path.suffix.lower() in {".md", ".txt", ".rst"}:
+            source_type = "documentation"
+        elif path.suffix.lower() == ".pdf":
+            source_type = "paper"
+    category = {
+        "paper": "published",
+        "analysis_note": "internal",
+        "code": "implementation",
+        "documentation": "notes",
+    }.get(source_type, "misc")
+    return source_type, category
+
+
+def _create_chunks(
+    text: str,
+    metadata: dict[str, Any],
+    chunk_size: int,
+    chunk_overlap: int,
+    scientific_chunk_size: int,
+    scientific_chunk_overlap: int,
+) -> list[Document]:
+    if not text.strip():
+        return []
+    if metadata.get("source_type") in {"paper", "analysis_note"}:
+        chunk_size = scientific_chunk_size
+        chunk_overlap = scientific_chunk_overlap
+    splitter = RecursiveCharacterTextSplitter(
+        chunk_size=chunk_size,
+        chunk_overlap=chunk_overlap,
+        separators=["\n## ", "\n### ", "\n\n\n", "\n\n", "\n", ". ", " "],
+        length_function=len,
+    )
+    chunks = splitter.split_text(text)
+    docs: list[Document] = []
+    for idx, chunk in enumerate(chunks):
+        chunk_meta = dict(metadata)
+        chunk_meta["chunk_index"] = idx
+        chunk_meta["total_chunks"] = len(chunks)
+        chunk_meta["content_hash"] = hashlib.md5(chunk.encode()).hexdigest()[:12]
+        docs.append(Document(page_content=chunk, metadata=chunk_meta))
+    return docs
+
+
 def main() -> None:
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description="Index references into Chroma.")
     parser.add_argument("--config", required=True)
     parser.add_argument("--output-dir", required=True)
-    parser.add_argument("--chunk-size", type=int, default=1800)
-    parser.add_argument("--chunk-overlap", type=int, default=250)
+    parser.add_argument("--force", action="store_true")
+    parser.add_argument("--chunk-size", type=int, default=1500)
+    parser.add_argument("--chunk-overlap", type=int, default=200)
+    parser.add_argument("--collection-name", default="")
     args = parser.parse_args()
 
-    with Path(args.config).open("r", encoding="utf-8") as handle:
-        config = yaml.safe_load(handle)
+    config_path = Path(args.config).resolve()
+    with config_path.open("r", encoding="utf-8") as handle:
+        config = yaml.safe_load(handle) or {}
 
-    rows = []
-    for path in sorted(set(iter_paths(config))):
-        try:
-            text = path.read_text(encoding="utf-8", errors="ignore")
-        except Exception:
-            continue
-        for idx, chunk in enumerate(chunk_text(text, args.chunk_size, args.chunk_overlap)):
-            rows.append(
-                {
-                    "doc_path": str(path),
-                    "doc_hash": file_hash(path),
-                    "chunk_index": idx,
-                    "text": chunk,
-                }
-            )
+    indexing_cfg = config.get("indexing", {})
+    collection_name = args.collection_name or indexing_cfg.get("collection_name", "rag-ai-scientist")
+    chunk_size = int(indexing_cfg.get("chunk_size", args.chunk_size))
+    chunk_overlap = int(indexing_cfg.get("chunk_overlap", args.chunk_overlap))
+    scientific_chunk_size = int(indexing_cfg.get("scientific_chunk_size", 2000))
+    scientific_chunk_overlap = int(indexing_cfg.get("scientific_chunk_overlap", 300))
+    type_rules = indexing_cfg.get(
+        "doc_type_rules",
+        {
+            "analysis_note": ["analysis_notes", "note"],
+            "paper": ["papers", "publication"],
+            "documentation": ["docs", "readme"],
+        },
+    )
 
-    if not rows:
-        raise SystemExit("No indexable documents found from config.")
-
-    vectorizer = TfidfVectorizer(stop_words="english", max_features=20000)
-    matrix = vectorizer.fit_transform([row["text"] for row in rows]).toarray()
-
-    out_dir = Path(args.output_dir)
+    out_dir = Path(args.output_dir).resolve()
+    if args.force and out_dir.exists():
+        shutil.rmtree(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
-    (out_dir / "chunks.jsonl").write_text(
-        "\n".join(json.dumps(row, ensure_ascii=True) for row in rows) + "\n",
-        encoding="utf-8",
+
+    paths = _iter_paths(config, config_path)
+    if not paths:
+        raise SystemExit("No indexable paths found in config.")
+
+    documents: list[Document] = []
+    for path in paths:
+        text = _extract_text(path)
+        if not text:
+            continue
+        source_type, doc_category = _classify_document(path, type_rules)
+        metadata = {
+            "file": path.name,
+            "doc_path": str(path),
+            "doc_hash": _file_hash(path),
+            "source_type": source_type,
+            "doc_category": doc_category,
+        }
+        documents.extend(
+            _create_chunks(
+                text=text,
+                metadata=metadata,
+                chunk_size=chunk_size,
+                chunk_overlap=chunk_overlap,
+                scientific_chunk_size=scientific_chunk_size,
+                scientific_chunk_overlap=scientific_chunk_overlap,
+            )
+        )
+
+    if not documents:
+        raise SystemExit("No readable documents found after extraction.")
+
+    embeddings = HuggingFaceEmbeddings(
+        model_name="sentence-transformers/all-MiniLM-L6-v2",
+        model_kwargs={"device": "cpu"},
+        encode_kwargs={"normalize_embeddings": True},
     )
-    (out_dir / "vectors.json").write_text(json.dumps(matrix.tolist()), encoding="utf-8")
-    # Cast vocabulary indices to native int for JSON serialization compatibility.
-    serializable_vocab = {token: int(index) for token, index in vectorizer.vocabulary_.items()}
-    (out_dir / "vocab.json").write_text(json.dumps(serializable_vocab, sort_keys=True), encoding="utf-8")
-    (out_dir / "meta.json").write_text(
-        json.dumps(
-            {
-                "chunks": len(rows),
-                "documents": len({row["doc_path"] for row in rows}),
-                "chunk_size": args.chunk_size,
-                "chunk_overlap": args.chunk_overlap,
-            },
-            indent=2,
-            sort_keys=True,
-        ),
-        encoding="utf-8",
+    Chroma.from_documents(
+        documents=documents,
+        embedding=embeddings,
+        persist_directory=str(out_dir),
+        collection_name=collection_name,
     )
-    print(f"Indexed {len(rows)} chunks from {len({row['doc_path'] for row in rows})} documents.")
+    unique_docs = len({doc.metadata["doc_path"] for doc in documents})
+    print(
+        f"Indexed {len(documents)} chunks from {unique_docs} documents "
+        f"into collection '{collection_name}'."
+    )
 
 
 if __name__ == "__main__":

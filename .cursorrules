@@ -1,15 +1,17 @@
 You are working in `rag-ai-scientist`.
 
 Priorities:
-- Keep changes reproducible and script-driven.
-- Prefer updating scripts/configs/docs in this repo over ad-hoc commands.
-- Preserve deterministic behavior for validation outputs.
+- Keep workflows reproducible and script-driven.
+- Prefer changes in scripts/configs/docs over one-off terminal-only behavior.
+- Preserve deterministic validation outputs and provenance logs.
 
 RAG and Cursor:
 - Use `.cursor/rag_db` as the local vector DB path.
-- Use `.cursor/run_mcp_server.sh` to start MCP for this repo.
-- Keep `.cursor` wrappers aligned with `rag/*.py` implementations.
+- Start MCP through `.cursor/run_mcp_server.sh`.
+- Keep `.cursor` wrappers aligned with implementations in `rag/` and `scripts/`.
+- Keep collection naming configurable via `configs/references.yaml` and `RAG_COLLECTION_NAME`.
 
 Safety:
-- Do not remove or overwrite run artifacts unless explicitly requested.
-- Do not hardcode secrets; use environment variables for API keys.
+- Do not overwrite run artifacts unless explicitly requested.
+- Do not hardcode secrets or private paths.
+- Use environment variables for API keys and provider selection.

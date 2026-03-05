@@ -1,106 +1,75 @@
 # rag-ai-scientist
 
-Agentic RAG scientist repo for reliability-loop development, reproducible analysis support, and local Cursor assets.
+Open-source, agentic reliability-loop framework with a local RAG stack, MCP server, and reusable skill system for scientific and technical workflows.
 
-## Minimal start (most important)
+## Licensing
 
-From this repository root:
+- Open-source: AGPL-3.0-or-later (see `LICENSE`)
+- Commercial: available for proprietary deployments (see `LICENSE-COMMERCIAL.md`)
+
+## Quick Start
 
 ```bash
-# Environment first (important on lxplus/CVMFS)
 python3 -m venv ~/mcp_env
 source ~/mcp_env/bin/activate
 python -m pip install --upgrade pip
-
-# One-command setup + local RAG build
 bash .cursor/setup_rag.sh
+```
 
-# Run reliability loop
+Then run:
+
+```bash
 ./scripts/reliability_loop.sh
 ```
 
-Equivalent explicit steps:
+## Core Components
+
+- Reliability loop orchestrator: `scripts/reliability_loop.sh`
+- Indexer pipeline (PDF/text/code to Chroma): `rag/index_documents.py`
+- Cursor wrapper for indexing: `.cursor/index_documents.py`
+- MCP server for semantic retrieval + skills: `.cursor/mcp_server.py`
+- Curated-note ingestion utility: `.cursor/ingest.py`
+- Embedding visualization: `.cursor/visualize_rag.py`
+- Project skills: `.cursor/skills/`
+
+## RAG Setup and Usage
+
+Index references:
 
 ```bash
-python -m pip install -r requirements.txt
-python -m pip install -r .cursor/requirements.txt
-python .cursor/index_documents.py
-./scripts/reliability_loop.sh
+python .cursor/index_documents.py --force
 ```
 
-If you want to use MCP tools from this repo, always index first and then start the server:
+Start MCP server:
 
 ```bash
-python .cursor/index_documents.py
 bash .cursor/run_mcp_server.sh
 ```
 
-Expected MCP startup output now includes:
-
-- `Initializing MCP server components...`
-- `Loading RAG database into memory...`
-- `RAG database loaded: ...`
-- `MCP server ready - waiting for connections...`
-
-`run_mcp_server.sh` automatically prefers `~/mcp_env/bin/python` when available.
-You can override interpreter selection with:
+Ingest a curated note:
 
 ```bash
-MCP_PYTHON=/path/to/python bash .cursor/run_mcp_server.sh
+python .cursor/ingest.py --title "fit fix" --file my_note.md --tags fitting,debug
 ```
 
-## What this repository provides
+Visualize embedding space:
 
-- A one-command reliability loop (`scripts/reliability_loop.sh`).
-- Local `.cursor/rag_db` generation (`scripts/build_rag_db.sh`).
-- Root `.cursorrules` ownership for project-specific agent rules.
-- Resumable stage execution (`--from`, `--until`) with run logs in `runs/<run_id>/logs/`.
-- Deterministic validation checks against published/reference values.
-- Automatic LaTeX draft updates for papers and TDRs.
-- Cursor-rules smoke checks with pass/fail JSON output.
-- Correction wrapper with provenance logs (parameters, hashes, git SHA).
-- RAG indexing and query utilities for papers, notes, and code references.
+```bash
+python .cursor/visualize_rag.py --method umap --top-n 500
+```
 
-## Quick start
+## Configuration
 
-1. Create or activate your Python environment (recommended on lxplus/CVMFS):
-   - `python3 -m venv ~/mcp_env`
-   - `source ~/mcp_env/bin/activate`
-2. Install dependencies:
-   - `python -m pip install --upgrade pip`
-3. Copy editable configs:
-   - `cp configs/datasets.example.yaml configs/datasets.yaml`
-   - `cp configs/references.example.yaml configs/references.yaml`
-4. Run one-command setup for dependencies + RAG index:
-   - `bash .cursor/setup_rag.sh`
-5. Run the full reliability loop:
-   - `./scripts/reliability_loop.sh`
+- Main references config: `configs/references.yaml`
+- Example references config: `configs/references.example.yaml`
+- Indexing options now include:
+  - `collection_name`
+  - chunking parameters
+  - `doc_type_rules` classification hints
 
-If you see `OSError: [Errno 30] Read-only file system` pointing to `/cvmfs/.../site-packages`,
-`pip` is using the read-only LCG/CVMFS Python. Reactivate your venv and verify:
+## Reliability Loop Stages
 
-- `source ~/mcp_env/bin/activate`
-- `which python`
-- `python -m pip -V`
-
-`python -m pip -V` should point to `~/mcp_env/...`, not `/cvmfs/...`.
-`.cursor/setup_rag.sh` now checks this and exits early if pip resolves to `/cvmfs/...`.
-
-## One-command run
-
-Run all stages:
-
-- `./scripts/reliability_loop.sh`
-
-Resume from a stage:
-
-- `./scripts/reliability_loop.sh --from deterministic_validation`
-
-Run only part of the pipeline:
-
-- `./scripts/reliability_loop.sh --until cursor_rules`
-
-Supported stages:
+`scripts/reliability_loop.sh` supports:
 
 - `execution`
 - `deterministic_validation`
@@ -110,54 +79,28 @@ Supported stages:
 - `corrections`
 - `integration_summary`
 
-## Data and references
+You can resume or truncate execution:
 
-- Default 2016 references are provided in `configs/datasets.example.yaml`.
-- Users can provide custom AFS/EOS/local data paths in `configs/datasets.yaml`.
-- Seed and custom references for RAG are configured in `configs/references.yaml`.
-
-### Add your own files to RAG
-
-1. Put your files in a readable location (recommended shared location):
-   - `/afs/cern.ch/user/<username>/public/my_references/`
-   - Avoid `/work/.../private/...` paths if collaborators need access.
-2. Add those paths to `configs/references.yaml` under `sources[].paths`.
-3. Set matching `extensions` for your files (for example: `.pdf`, `.md`, `.txt`, `.tex`, `.py`).
-4. Rebuild the index:
-   - `source ~/mcp_env/bin/activate`
-   - `python .cursor/index_documents.py --force`
-5. Start MCP server (after indexing completes):
-   - `bash .cursor/run_mcp_server.sh`
-   - If startup fails with `ModuleNotFoundError: No module named 'mcp'`, verify the interpreter:
-     - `MCP_PYTHON=~/mcp_env/bin/python bash .cursor/run_mcp_server.sh`
-
-Example `configs/references.yaml` entry:
-
-```yaml
-sources:
-  - name: "my_references"
-    paths:
-      - "/afs/cern.ch/user/<username>/public/my_references/papers"
-      - "/afs/cern.ch/user/<username>/public/my_references/notes.md"
-    extensions: [".pdf", ".md", ".txt", ".tex"]
+```bash
+./scripts/reliability_loop.sh --from deterministic_validation
+./scripts/reliability_loop.sh --until cursor_rules
 ```
 
-## Key outputs
+## Skills
 
-- Run logs: `runs/<run_id>/logs/`
-- Validation checks: `validation_out/checks.json`
-- Rules checks: `validation_out/rules/<run_id>.json`
-- Report bundle: `validation_out/reports/<run_id>/`
-- Paper drafts: `runs/<run_id>/papers/`
-- Correction provenance: `runs/<run_id>/corrections/provenance.json`
-- RAG DB: `.cursor/rag_db/`
+Included:
 
-## Documentation
+- `.cursor/skills/rag-setup/SKILL.md`
+- `.cursor/skills/_template/SKILL.md` (copy and customize)
 
-- `docs/GETTING_STARTED.md`
-- `docs/PIPELINE.md`
-- `docs/DATASETS_2016.md`
-- `docs/REFERENCES.md`
-- `docs/RAG_VECTOR_DB.md`
-- `docs/PAPERS_AND_TDRS.md`
-- `docs/HACKATHON_TASK_BOARD.md`
+Use in Cursor by asking:
+
+```text
+Use the rag-setup skill and configure RAG for this repository.
+```
+
+## Open Source Notes
+
+- Do not commit secrets (`.env`, API keys).
+- Use `.cursor/.env.example` as template.
+- For contribution terms and dual-licensing policy, see `CONTRIBUTING.md`.

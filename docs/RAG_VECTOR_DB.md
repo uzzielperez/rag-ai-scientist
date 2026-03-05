@@ -8,34 +8,41 @@ This project uses a local vector DB under `.cursor/rag_db/`.
 ./scripts/build_rag_db.sh
 ```
 
-That script runs:
+Equivalent direct command:
 
 ```bash
-python rag/index_documents.py --config configs/references.yaml --output-dir .cursor/rag_db
+python .cursor/index_documents.py --force
 ```
 
 If `configs/references.yaml` does not exist, it falls back to `configs/references.example.yaml`.
 
 ## Query index
 
+Use MCP server tools for querying:
+
 ```bash
-python rag/query_rag.py --db-dir .cursor/rag_db --query "What is the 2016 BR reference?"
+bash .cursor/run_mcp_server.sh
 ```
+
+In Cursor, call one of:
+
+- `query_analysis_knowledge`
+- `search_papers`
+- `retrieve_documents`
 
 ## Regeneration workflow
 
 1. Update reference paths in `configs/references.yaml`.
 2. Rebuild with `./scripts/build_rag_db.sh`.
-3. Run test queries using `rag/query_rag.py`.
+3. Start MCP with `bash .cursor/run_mcp_server.sh`.
+4. Validate retrieval with MCP tools.
 
 ## Stored artifacts
 
-- `chunks.jsonl`: chunk text + metadata
-- `vectors.json`: TF-IDF vectors
-- `vocab.json`: vocabulary map
-- `meta.json`: chunk and document counts
+- ChromaDB files (for example: `chroma.sqlite3`, index segment directories)
+- Optional `ingest_log.jsonl` for curated ingested notes
 
 ## Notes
 
-- This is a lightweight local baseline for fast startup.
-- You can replace the backend with Chroma/FAISS later while keeping the same config contract.
+- The current backend is Chroma + Hugging Face embeddings.
+- Collection name is configurable via `configs/references.yaml` (`indexing.collection_name`).

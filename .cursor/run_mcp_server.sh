@@ -16,11 +16,13 @@ export TORCH_HOME="${CACHE_DIR}/torch"
 export CHROMA_CACHE_DIR="${CACHE_DIR}/chroma"
 export HF_HUB_DISABLE_TELEMETRY=1
 export TOKENIZERS_PARALLELISM=false
+export RAG_COLLECTION_NAME="${RAG_COLLECTION_NAME:-rag-ai-scientist}"
 
 echo "================================================"
 echo "Starting RAG MCP Server"
 echo "================================================"
 echo "Cache directory: ${CACHE_DIR}"
+echo "Collection: ${RAG_COLLECTION_NAME}"
 
 # Load project-local environment variables if present.
 if [[ -f "${SCRIPT_DIR}/.env" ]]; then
@@ -76,7 +78,7 @@ fi
 if [[ ! -d "${SCRIPT_DIR}/rag_db" ]]; then
   echo ""
   echo "Error: rag_db not found at ${SCRIPT_DIR}/rag_db"
-  echo "Build it first with: ./scripts/build_rag_db.sh"
+  echo "Build it first with: python .cursor/index_documents.py --force"
   echo ""
   exit 1
 fi
