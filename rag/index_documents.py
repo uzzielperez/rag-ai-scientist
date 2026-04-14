@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import errno
 import hashlib
 import re
 import shutil
@@ -210,7 +211,19 @@ def main() -> None:
 
     out_dir = Path(args.output_dir).resolve()
     if args.force and out_dir.exists():
-        shutil.rmtree(out_dir)
+        try:
+            shutil.rmtree(out_dir)
+        except OSError as e:
+            if e.errno != errno.EBUSY:
+                raise
+            for p in sorted(out_dir.iterdir(), key=lambda x: (not x.is_dir(), x.name)):
+                try:
+                    if p.is_file() or p.is_symlink():
+                        p.unlink()
+                    else:
+                        shutil.rmtree(p)
+                except OSError:
+                    pass
     out_dir.mkdir(parents=True, exist_ok=True)
 
     paths = _iter_paths(config, config_path)

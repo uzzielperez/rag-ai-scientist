@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import errno
 import shutil
 import subprocess
 import sys
@@ -27,7 +28,20 @@ def main() -> None:
         config_path = repo_root / "configs" / "references.example.yaml"
 
     if args.force and out_dir.exists():
-        shutil.rmtree(out_dir)
+        try:
+            shutil.rmtree(out_dir)
+        except OSError as e:
+            if e.errno != errno.EBUSY:
+                raise
+            # Clear contents so indexing can proceed; directory may be in use (e.g. ChromaDB, AFS).
+            for p in sorted(out_dir.iterdir(), key=lambda x: (not x.is_dir(), x.name)):
+                try:
+                    if p.is_file() or p.is_symlink():
+                        p.unlink()
+                    else:
+                        shutil.rmtree(p)
+                except OSError:
+                    pass
 
     cmd = [
         sys.executable,
