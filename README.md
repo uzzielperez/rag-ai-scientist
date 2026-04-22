@@ -16,15 +16,28 @@ Installable toolkit for local RAG indexing + MCP serving in scientific workflows
 ### From source (recommended while developing)
 
 ```bash
+uv venv .venv
+source .venv/bin/activate
+uv pip install -e .
+```
+
+If `uv` is not available, fallback to:
+
+```bash
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
 python -m pip install -e .
 ```
 
+Recommended isolation: keep this in a dedicated environment (for example
+`venvs/rag-ai-scientist`) rather than reusing analysis environments such as
+`ecalgnn311`.
+
 ### Verify install
 
 ```bash
+python -m pip show rag-ai-scientist
 rag-ai-scientist --help
 python -c "import rag_ai_scientist; print(rag_ai_scientist.__version__)"
 ```
@@ -88,6 +101,71 @@ Example `~/.cursor/mcp.json` entry:
   }
 }
 ```
+
+## Running Agents With Separate Training Environments
+
+If agents should run training/inference scripts and update configs, use two
+environments in parallel:
+
+- `rag-ai-scientist` environment: runs MCP server and agent logic.
+- analysis/training environment: runs model training and inference commands.
+
+This avoids dependency conflicts while still letting agents orchestrate the full
+workflow for another repository.
+
+### Recommended architecture
+
+1) Keep a dedicated environment for `rag-ai-scientist`:
+
+```bash
+cd /path/to/rag-ai-scientist-installable
+uv venv .venv
+source .venv/bin/activate
+uv pip install -e .
+```
+
+2) Keep your analysis repository and its own environment separate:
+
+- repo: `/path/to/analysis-repo`
+- env: `/path/to/analysis-env` (conda or venv)
+
+3) Start MCP from the `rag-ai-scientist` environment, but point it to the
+analysis repo:
+
+```bash
+rag-ai-scientist mcp --project-root /path/to/analysis-repo
+```
+
+4) Let agents launch analysis commands explicitly inside the analysis
+environment (for example via `conda run -p`), instead of relying on ambient
+shell state.
+
+### Safe command wrapper for agent execution
+
+Create a wrapper script in the analysis repo (example:
+`/path/to/analysis-repo/scripts/run_training.sh`) and let agents call only this
+script:
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+ANALYSIS_ENV="/path/to/analysis-env"
+ANALYSIS_REPO="/path/to/analysis-repo"
+
+cd "$ANALYSIS_REPO"
+exec conda run -p "$ANALYSIS_ENV" python scripts/train.py "$@"
+```
+
+This gives deterministic execution and avoids accidental environment drift.
+
+### Guardrails for autonomous edits and runs
+
+- Restrict editable files to a whitelist (for example `configs/**/*.yaml`).
+- Keep one output directory per run (`runs/<timestamp>_<tag>`).
+- Save the exact config snapshot and command used for each run.
+- Use a lock file to prevent concurrent training launches.
+- Require human approval before expensive or long GPU jobs.
 
 ## Package Layout
 

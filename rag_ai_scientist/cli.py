@@ -4,6 +4,7 @@ import argparse
 import os
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 import yaml
@@ -133,6 +134,115 @@ def cmd_mcp(args: argparse.Namespace) -> None:
     run_mcp(project_root=_project_root(args.project_root))
 
 
+def _print_check(ok: bool, label: str, detail: str = "") -> bool:
+    status = "PASS" if ok else "FAIL"
+    suffix = f": {detail}" if detail else ""
+    print(f"[{status}] {label}{suffix}")
+    return ok
+
+
+def cmd_doctor(args: argparse.Namespace) -> None:
+    project_root = _project_root(args.project_root)
+    checks: list[bool] = []
+
+    checks.append(
+        _print_check(
+            sys.version_info >= (3, 10),
+            "python-version",
+            f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",
+        )
+    )
+
+    config_path = project_root / "configs" / "references.yaml"
+    checks.append(_print_check(config_path.exists(), "config-exists", str(config_path)))
+    if config_path.exists():
+        try:
+            cfg = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
+            sources = cfg.get("sources", [])
+            has_paths = any(group.get("paths") for group in sources if isinstance(group, dict))
+            checks.append(_print_check(bool(sources), "config-has-sources"))
+            checks.append(_print_check(bool(has_paths), "config-has-source-paths"))
+        except Exception as exc:
+            checks.append(_print_check(False, "config-parse", str(exc)))
+
+    rag_parent = project_root / ".cursor"
+    rag_db = rag_parent / "rag_db"
+    try:
+        rag_parent.mkdir(parents=True, exist_ok=True)
+        rag_db.mkdir(parents=True, exist_ok=True)
+        probe = rag_db / ".write_probe"
+        probe.write_text("ok", encoding="utf-8")
+        probe.unlink()
+        checks.append(_print_check(True, "rag-db-writable", str(rag_db)))
+    except Exception as exc:
+        checks.append(_print_check(False, "rag-db-writable", str(exc)))
+
+    for mod_name in ("yaml", "rag.index_documents", "rag_ai_scientist.mcp_server"):
+        try:
+            __import__(mod_name)
+            checks.append(_print_check(True, f"import-{mod_name}"))
+        except Exception as exc:
+            checks.append(_print_check(False, f"import-{mod_name}", str(exc)))
+
+    has_groq = bool(os.getenv("GROQ_API_KEY"))
+    if has_groq:
+        _print_check(True, "env-GROQ_API_KEY")
+    else:
+        print("[WARN] env-GROQ_API_KEY: not set (required for QA generation paths)")
+
+    if not all(checks):
+        raise SystemExit(1)
+    print("Doctor checks passed.")
+
+
+def cmd_self_test(args: argparse.Namespace) -> None:
+    checks: list[bool] = []
+    with tempfile.TemporaryDirectory(prefix="rag-ai-scientist-selftest-") as tmp:
+        tmp_root = Path(tmp)
+        refs_dir = tmp_root / "refs"
+        refs_dir.mkdir(parents=True, exist_ok=True)
+        (refs_dir / "note.md").write_text(
+            "# Self test\n\nThis file validates the rag-ai-scientist CLI workflow.\n",
+            encoding="utf-8",
+        )
+
+        config_path = _write_references_yaml(
+            project_root=tmp_root,
+            references_dir=refs_dir,
+            force=True,
+            collection_name="rag-ai-scientist-self-test",
+            chunk_size=500,
+            chunk_overlap=50,
+            scientific_chunk_size=700,
+            scientific_chunk_overlap=100,
+            extensions=[".md", ".txt"],
+        )
+        checks.append(_print_check(config_path.exists(), "selftest-config-written", str(config_path)))
+
+        try:
+            cfg = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
+            checks.append(_print_check("sources" in cfg, "selftest-config-parse"))
+        except Exception as exc:
+            checks.append(_print_check(False, "selftest-config-parse", str(exc)))
+
+        for cmd in (
+            [sys.executable, "-m", "rag_ai_scientist.cli", "--help"],
+            [sys.executable, "-m", "rag_ai_scientist.cli", "init-references", "--help"],
+            [sys.executable, "-m", "rag_ai_scientist.cli", "setup-rag", "--help"],
+            [sys.executable, "-m", "rag_ai_scientist.cli", "mcp", "--help"],
+            [sys.executable, "-m", "rag.index_documents", "--help"],
+        ):
+            try:
+                subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+                checks.append(_print_check(True, "selftest-cli", " ".join(cmd[2:])))
+            except Exception as exc:
+                checks.append(_print_check(False, "selftest-cli", f"{' '.join(cmd[2:])} -> {exc}"))
+
+    if not all(checks):
+        raise SystemExit(1)
+    print("Self-test passed.")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(prog="rag-ai-scientist")
     sub = parser.add_subparsers(dest="cmd", required=True)
@@ -169,6 +279,13 @@ def main() -> None:
     p_mcp = sub.add_parser("mcp", help="Start MCP server (stdio). Point Cursor's MCP to this command.")
     p_mcp.add_argument("--project-root", default=".", help="Target analysis repo root.")
     p_mcp.set_defaults(func=cmd_mcp)
+
+    p_doctor = sub.add_parser("doctor", help="Run local environment and project health checks.")
+    p_doctor.add_argument("--project-root", default=".", help="Target analysis repo root.")
+    p_doctor.set_defaults(func=cmd_doctor)
+
+    p_self_test = sub.add_parser("self-test", help="Run fast CLI/package self-tests.")
+    p_self_test.set_defaults(func=cmd_self_test)
 
     args = parser.parse_args()
 

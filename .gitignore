@@ -12,3 +12,4 @@ validation_out/
 *.log
 .env
 *.root
+*.egg-info/
