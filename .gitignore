@@ -13,3 +13,4 @@ validation_out/
 .env
 *.root
 *.egg-info/
+.venv-publish/
