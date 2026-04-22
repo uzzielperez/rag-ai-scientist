@@ -1,0 +1,4127 @@
+EUROPEAN ORGANIZATION FOR NUCLEAR RESEARCH (CERN)
+CERN-EP-20XX-ZZZ
+LHCb-PAPER-2026-015
+February 26, 2026
+Angular analysis of the
+B+ →π+µ+µ−decay
+LHCb collaboration†
+Abstract
+This paper presents a first measurement of the angular observables AFB and FH
+that parameterise the angular distribution of the B+ →π+µ+µ−decay. The pp
+collision dataset used in the analysis corresponds to an integrated luminosity of
+9 fb−1, collected with the LHCb experiment between 2011 and 2018. The analysis
+is performed in two bins of dimuon invariant-mass squared, q2, one above and one
+below the peaks in the q2 distribution from the J/ψ and ψ(2S) narrow charmonium
+resonances.
+The observables are found to be consistent with Standard Model
+predictions.
+Submitted to JHEP
+© 2026 CERN for the benefit of the LHCb collaboration. CC BY 4.0 licence.
+†Authors are listed at the end of this paper.
+
+ii
+
+1
+Introduction
+1
+The decay B+ →π+µ+µ−is, in the Standard Model of particle physics (SM), mediated by
+2
+a b- to d-quark flavour-changing neutral-current transition.1 Figure 1 shows the leading-
+3
+order Feynman diagrams for the B+ →π+µ+µ−decay. The dominant contribution comes
+4
+from diagrams with an internal t loop due to the large t mass, which enhances its virtual
+5
+effects in the loop. The small magnitude of the Vtd element of the Cabibbo–Kobayashi–
+6
+Maskawa (CKM) quark-mixing matrix [1,2] suppresses the branching fraction for the decay
+7
+to O (10−8). The small SM branching fraction makes the B+ →π+µ+µ−decay sensitive
+8
+to contributions from particles arising in extensions of the SM. Non-SM contributions
+9
+could alter observables such as the rate and angular distribution of the decay or their
+10
+differences between B+ and B−decays. While previous measurements of the branching
+11
+fraction and CP asymmetry [3,4] are consistent with SM predictions [5–7], the angular
+12
+distribution of the B+ →π+µ+µ−decay has not previously been measured.
+13
+The differential decay rate of the B+ →π+µ+µ−decay can be parameterised in terms
+14
+of the dimuon mass squared, q2, and the angle, θl, between the direction of the µ+ and
+15
+the direction opposite that of the pion in the dimuon rest frame for the B+ meson decay.
+16
+Normalising by the total decay rate Γ gives [8,9]
+17
+1
+Γ
+dΓ
+d cos θl
+= 3
+4(1 −FH)(1 −cos2 θl) + FH
+2 + AFB cos θl .
+(1)
+This expression depends on two parameters, the forward-backward asymmetry of the
+18
+dimuon system, AFB, and a parameter that is a measure of the flatness of the cos θl
+19
+distribution, FH. These parameters are sensitive to (pseudo)scalar and (axial)tensor
+20
+contributions to the decay width [10]. In the SM, AFB = 0 and FH is small away from
+21
+both ends of the allowed q2 range. For the probability density of the angular distribution
+22
+to remain positive definite, |AFB| ≤FH/2 is required. Small deviations from Eq. (1) due
+23
+to quantum electrodynamics (QED) effects [11] are negligible in currently available data
+24
+samples.
+25
+The angular distribution of the B+ →π+µ+µ−decay is studied for the first time in
+26
+this paper using a dataset of proton-proton (pp) collisions corresponding to an integrated
+27
+luminosity of 9 fb−1, collected with the LHCb experiment. The data are split into two
+28
+regions of q2, covering 1.1 < q2 < 6.0 GeV2/c4 and 15.0 < q2 < 22.0 GeV2/c4. While no
+29
+b
+d
+u
+u
+µ−
+µ+
+u, c, t
+W +
+νµ
+W −
+B+
+π+
+b
+d
+u
+u
+µ−
+µ+
+u, c, t
+W +
+Z/γ
+B+
+π+
+Figure 1: Leading-order Feynman diagrams for the B+ →π+µ+µ−decay in the Standard Model.
+1The inclusion of charge-conjugate processes is implied throughout this paper unless explicitly stated.
+1
+
+measurements have previously been made of the angular distribution of the B+ →π+µ+µ−
+30
+decay, the BaBar, Belle, CDF, CMS and LHCb collaborations have previously studied
+31
+the corresponding distribution for B+ →K+µ+µ−decays [12–16]. This decay has a much
+32
+larger branching fraction due to the larger magnitude of the Vts element of the CKM
+33
+matrix, relative to Vtd, and in the SM is expected to have a similar angular distribution.
+34
+The results of the B+ →K+µ+µ−analyses are consistent with the SM picture, with AFB
+35
+and FH consistent with zero. These measurements have been used to set the best available
+36
+limits on tensor contributions to b →s processes [10].
+37
+2
+Detector and simulation
+38
+The LHCb detector [17, 18] is a single-arm forward spectrometer covering the
+39
+pseudorapidity range 2 < η < 5, designed for the study of particles containing b or
+40
+c quarks. The detector to collect the data analysed in this paper includes a high-precision
+41
+tracking system consisting of a silicon-strip vertex detector surrounding the pp interaction
+42
+region [19], a large-area silicon-strip detector located upstream of a dipole magnet with
+43
+a bending power of about 4 T m, and three stations of silicon-strip detectors and straw
+44
+drift tubes [20,21] placed downstream of the magnet. The tracking system provides a
+45
+measurement of the momentum, p, of charged particles with a relative uncertainty that
+46
+varies from 0.5% at low momentum to 1.0% at 200 GeV/c. The minimum distance of
+47
+a track to a primary pp collision vertex (PV), the impact parameter (IP), is measured
+48
+with a resolution of (15 + 29/pT) µm, where pT is the component of the momentum
+49
+transverse to the beam, in GeV/c. Different types of charged hadrons are distinguished
+50
+using information from two ring-imaging Cherenkov detectors [22]. Photons, electrons
+51
+and hadrons are identified by a calorimeter system consisting of scintillating-pad and
+52
+preshower detectors, an electromagnetic and a hadronic calorimeter. Muons are identified
+53
+by a system composed of alternating layers of iron and multiwire proportional cham-
+54
+bers [23]. The online event selection is performed by a trigger [24], which consists of a
+55
+hardware stage, based on information from the calorimeter and muon systems, followed
+56
+by a software stage, which applies a full event reconstruction. Triggered data further
+57
+undergo a centralised, offline processing step to deliver physics-analysis-ready data across
+58
+the entire LHCb physics programme [25].
+59
+Samples of simulated events are used to understand the impact of the detector and
+60
+subsequent event selection on the angular distribution of the signal B+ →π+µ+µ−decays.
+61
+They are also used to model the contribution from a variety of backgrounds as described
+62
+below. In the simulation, pp collisions are generated using Pythia [26] with a specific
+63
+LHCb configuration [27]. Decays of unstable particles are described by EvtGen [28],
+64
+in which final-state radiation is generated using Photos [29].
+The angular and q2
+65
+distributions of B+ →π+µ+µ−and B+ →K+µ+µ−decays are generated according to
+66
+Ref. [9] using form factors from Ref. [30]. The interaction of the generated particles with
+67
+the detector, and its response, are implemented using the Geant4 toolkit [31] as described
+68
+in Ref. [32]. The simulated samples are corrected for known data-simulation differences in
+69
+track reconstruction and muon-identification efficiencies using a tag-and-probe approach
+70
+with J/ψ →µ+µ−decays. Kaon and pion identification efficiencies are corrected using
+71
+D∗+ →D0(K−π+)π+ decays, which can be selected in data without particle-identification
+72
+requirements. Simulated samples are then weighted such that the production kinematics of
+73
+2
+
+the B+ mesons in the simulation are consistent with the observed momentum distributions
+74
+of B+ mesons reconstructed through B+ →J/ψK+decays in data.
+75
+3
+Candidate selection
+76
+Events are required to pass a hardware trigger that retains events comprising at least one
+77
+muon with high transverse momentum, with the minimum threshold varying in the range
+78
+1200–2200 MeV/c depending on the data-taking period. In the software trigger, at least
+79
+one of the final-state particles is required to have pT > 0.8 GeV/c and an IP greater than
+80
+100 µm with respect to all PVs in the event. A multivariate algorithm [33,34] is then used
+81
+to identify events containing secondary vertices formed by two or three tracks that are
+82
+consistent with the decay of a b hadron.
+83
+Offline, B+ candidates are formed from the combination of two oppositely charged
+84
+tracks that are identified as muons and a third track identified as a pion. The muons are
+85
+required to have pT > 800 MeV/c. Each track is required to have a good track-fit quality,
+86
+to be within the acceptance of the particle-identification systems, and have a significant
+87
+IP with respect to all PVs in the event. The three tracks are required to be consistent
+88
+with originating from a single point that is displaced from every PV. The B+ candidate is
+89
+required to have a π+µ+µ−mass in the range 5180 < m(π+µ+µ−) < 5780 MeV/c2 and to
+90
+be consistent with originating from its associated PV, i.e. the PV with the smallest IP χ2,
+91
+defined as the difference in the vertex-fit χ2 of the PV reconstructed with and without
+92
+the candidate.
+93
+Combinatorial
+background,
+from
+tracks
+originating
+from
+two
+or
+more
+dif-
+94
+ferent b- or c-hadron decays,
+is suppressed using a boosted-decision-tree clas-
+95
+sifier.
+The
+classifier
+is
+trained
+using
+samples
+of
+simulated
+decays
+for
+sig-
+96
+nal
+and
+candidates
+from
+sidebands
+of
+the
+data
+with
+π+µ+µ−
+mass
+in
+the
+97
+range 5550 < m(π+µ+µ−) < 6000 MeV/c2 or 6500 < m(π+µ+µ−) < 7000 MeV/c2 for back-
+98
+ground. The range 6000 < m(π+µ+µ−) < 6500 MeV/c2 is excluded to avoid potential
+99
+contributions from resonant or nonresonant B+
+c →π+µ+µ−decays [35]. The classifier
+100
+takes as input a variety of topological and kinematic variables that are characteristic of B+
+101
+meson decays in the LHCb experiment. These include the muon and pion momenta, the
+102
+muon IP χ2, the B+ candidate vertex-fit χ2 and the angle between the B+ momentum-
+103
+vector and the vector between the B+ decay vertex and its associated PV. The classifier
+104
+working point and particle-identification requirements applied to the pion are optimised
+105
+simultaneously using pseudoexperiments to maximise the expected significance of the
+106
+B+ →π+µ+µ−signal.
+107
+The largest potential source of background from a specific decay arises from the
+108
+B+ →K+µ+µ−channel, where the kaon is incorrectly identified as a pion.
+Before
+109
+applying particle-identification requirements, this background is 25 times more prominent
+110
+than the signal [36]. Residual background contributions arising from B+ →π+π−π+ and
+111
+B+ →K+π−π+ decays amount to approximately 1% of the signal yield; these contributions
+112
+are neglected in the nominal analysis but are accounted for as a source of systematic
+113
+uncertainty. Backgrounds are also present from B+ →J/ψK+ and B+ →J/ψπ+ decays,
+114
+where the kaon or pion is incorrectly identified as a muon and a muon from the J/ψ→µ+µ−
+115
+decay, with the appropriate charge, is misidentified as a pion. These are removed by
+116
+vetoing candidates with a π+µ−mass, with the muon mass hypothesis assigned to the
+117
+3
+
+pion, within 20 MeV/c2 of the known J/ψ mass [36]; this is subsequently referred to as the
+118
+J/ψ veto. Decays of B0, B+ and B0
+s mesons to final states containing a π+, µ+, µ−and
+119
+additional unreconstructed particles predominantly populate the π+µ+µ−invariant-mass
+120
+region below 5180 MeV/c2. These contributions are removed by the requirement on the
+121
+π+µ+µ−mass and are therefore not considered further. To suppress further sources of
+122
+semileptonic backgrounds with missing neutrinos, candidates are vetoed if they have a
+123
+π+µ−mass that is consistent with a D meson. The largest residual contribution from
+124
+decays with unreconstructed particles within the considered π+µ+µ−mass range is from
+125
+B0
+s →f0(980)µ+µ−decays. Given its small branching fraction [37], this background can
+126
+be safely neglected in the analysis.
+127
+Samples of B+ →J/ψπ+ and B+ →J/ψK+decays, where the J/ψ meson decays to
+128
+µ+µ−, are retained as control channels. The B+ →J/ψπ+ decay is selected with the
+129
+same set of requirements as the B+ →π+µ+µ−signal, except requiring the µ+µ−mass
+130
+to be within 100 MeV/c2 of the known J/ψ mass instead of the q2 requirements. The
+131
+B+ →J/ψK+decay is selected with an alternative set of particle-identification require-
+132
+ments.
+133
+4
+Angular model
+134
+In each q2 interval, the observables AFB and FH are determined by performing a simulta-
+135
+neous unbinned maximum-likelihood fit to the π+µ+µ−mass and cos θl distributions of
+136
+the selected candidates. The signal angular distribution is modelled by Eq. (1), multiplied
+137
+by a function describing the angular efficiency of the reconstruction and selection process.
+138
+The angular resolution of the detector is sufficiently good (better than 1 mrad) that it
+139
+can be neglected but is considered as a source of systematic uncertainty.
+140
+Figure 2 shows the efficiency of the reconstruction and selection, without the vetoes
+141
+applied, as a function of cos θl in the two q2 ranges on simulated B+ →π+µ+µ−decays.
+142
+The efficiency is well described in each q2 interval by a fourth-order Legendre polynomial
+143
+model that only includes even-ordered terms and is therefore symmetric around cos θl = 0.
+144
+The variation of B+ →π+µ+µ−kinematics over q2 causes the selection efficiency of the
+145
+rare mode to differ between low and high q2 intervals. The main sources of inefficiency
+146
+are related to the muons needing to have sufficient momentum to reach and traverse the
+147
+muon system and to satisfy the hardware trigger requirements. At low q2, the track and
+148
+muon reconstruction requirements favour decays with θl away from 0 and π, where one
+149
+muon is soft in the B+ rest frame. At intermediate and high q2, the hardware trigger
+150
+requirements on the pT of the muon candidates favour events away from θl ∼π/2, where
+151
+the maximum muon momentum tends to be smaller.
+152
+The simulation is generated with an SM-like q2 distribution [30], and potential variations
+153
+of the efficiency profile within each q2 interval are considered as a source of systematic
+154
+uncertainty. The J/ψ veto removes, at a fixed q2 value, a narrow region of cos θl, which
+155
+cannot be modelled by a polynomial. The efficiency is multiplied by a discontinuous
+156
+function to account for this effect.
+157
+The signal mass distribution is described by the sum of a Gaussian function with
+158
+power-law tails on both left- and right-hand sides of the distribution and a second Gaussian
+159
+function. The tail parameters are fixed from fits to simulation. In the fits to data, an
+160
+offset in the position of the peak and a scale factor on the width of the distribution, due
+161
+4
+
+1
+−
+0.5
+−
+0
+0.5
+1
+l
+θ
+cos 
+0
+0.01
+0.02
+0.03
+Efficiency per 0.04 
+LHCb
+Simulation
+4
+c/
+2
+ < 6.0 GeV
+2
+q
+1.1 < 
+1
+−
+0.5
+−
+0
+0.5
+1
+l
+θ
+cos 
+0
+0.01
+0.02
+0.03
+Efficiency per 0.04 
+LHCb
+Simulation
+4
+c/
+2
+ < 22.0 GeV
+2
+q
+15.0 < 
+Figure 2: Efficiency as a function of cos θl for B+ →π+µ+µ−decays in simulation in the q2
+regions (left) 1.1 < q2 < 6.0 GeV2/c4 and (right) 15.0 < q2 < 22.0 GeV2/c4. The projections of
+fits using a fourth-order polynomial parameterisation, containing only even-ordered terms, are
+superimposed, with the uncertainty on the obtained efficiency function shown as a band.
+to momentum-scale uncertainties, are included and determined from fits to the K+µ+µ−
+162
+mass distribution of selected B+ →J/ψK+decays.
+163
+The background from misidentified B+ →K+µ+µ−decays is modelled using simulation
+164
+generated according to the SM [9,30], as the distribution in data is known to be consistent
+165
+with SM expectations [38].
+The angular distribution is described by a fourth-order
+166
+Chebyshev polynomial function, with no contribution from odd-ordered terms. The mass
+167
+distribution of the misidentified background is described by a Gaussian function with
+168
+power-law tails on both left- and right-hand sides of the distribution. The mass and
+169
+angular distributions are assumed to factorise in the fit, and a systematic uncertainty is
+170
+assigned due to this assumption.
+171
+Combinatorial background is described by an exponential function in π+µ+µ−mass
+172
+and a second-order Chebyshev polynomial function in cos θl. The parameters of these
+173
+distributions are free to vary in the fit to data.
+174
+Due to the small size of the samples in the two q2 intervals, and due to the physical
+175
+boundary |AFB| ≤FH/2, the Feldman–Cousins approach [39] is used to estimate confidence
+176
+intervals on AFB and FH. At each fixed value of FH and AFB, the best-fit value for the
+177
+nuisance parameters is used when generating pseudoexperiments.
+When presenting
+178
+intervals on AFB (FH), FH (AFB) is treated as a nuisance parameter.
+179
+A fit is performed to the selected B+ →J/ψπ+ control samples in order to validate
+180
+the analysis strategy. The model used to describe B+ →J/ψπ+ decays is identical to
+181
+that of the signal but with the vetoes removed and the efficiency parameterised over
+182
+the appropriate q2 range. The B+ →J/ψπ+ decay has a known angular distribution,
+183
+proportional to sin2 θl. This is a signal-like distribution but with AFB = 0 and FH = 0. A
+184
+fit is also performed to the sample of B+ →J/ψK+decays. In this fit only contributions
+185
+from signal and combinatorial background are considered.
+186
+5
+Systematic uncertainties
+187
+The impact of various sources of systematic uncertainty are estimated using pseudoexperi-
+188
+ments generated assuming datasets that are three orders of magnitude larger than the
+189
+5
+
+Table 1: Sources of systematic uncertainty on FH and AFB in the 1.1 < q2 < 6.0 GeV2/c4
+(15.0 < q2 < 22.0 GeV2/c4) regions. The different contributions are described in the text, and
+the total uncertainty is obtained adding the individual sources of uncertainty in quadrature.
+Source
+FH
+AFB
+Simulation q2 dependence
+0.12 (0.01)
+0.01 (0.01)
+Angular efficiency order
+0.01 (0.01)
+0.01 (0.01)
+Simulation sample size
+0.01 (0.01)
+0.01 (0.02)
+Data-simulation corrections
+0.01 (0.02)
+0.03 (0.04)
+Truth matching criteria
+0.01 (0.01)
+0.01 (0.02)
+Angular resolution
+0.01 (0.01)
+0.01 (0.02)
+B+ →K+µ+µ−background model
+0.01 (0.01)
+0.01 (0.02)
+Combinatorial background model
+0.01 (0.01)
+0.01 (0.02)
+Hadronic backgrounds
+0.04 (0.02)
+0.01 (0.01)
+B0
+s →f0(980)µ+µ−background
+0.01 (0.02)
+0.01 (0.02)
+Total
+0.14 (0.04)
+0.04 (0.07)
+data. In most cases, the experiments are generated according to an alternative hypothesis
+190
+and then fit using the nominal analysis strategy and a systematic uncertainty is assigned
+191
+based on the bias on the fitted observables added together with the uncertainty on the
+192
+observable in quadrature. Exceptions to this process are discussed below. The different
+193
+sources of systematic uncertainty are summarised in Table 1.
+194
+Five types of systematic uncertainty are considered related to the signal efficiency
+195
+model. The uncertainty associated with the knowledge of the q2 spectrum of the signal
+196
+is the largest source of systematic uncertainty on FH. To assign this uncertainty, the
+197
+simulation is weighted to match the q2 spectrum observed in data within each q2 interval
+198
+and a pseudoexperiment is generated according to the angular efficiency of the weighted
+199
+simulation. The uncertainty accounting for the fixed efficiency model order is assigned
+200
+by considering alternative models: one that allows odd-ordered terms and another that
+201
+allows for an additional term of order six. The uncertainty due to the limited size of the
+202
+simulated samples used to derive the efficiency model is evaluated by bootstrapping the
+203
+simulation and deriving a set of varied models. Pseudoexperiments are then generated
+204
+from each efficiency model and fit with the nominal model. The spread in values of the
+205
+observables from this set of pseudoexperiments is assigned as a systematic uncertainty.
+206
+A similar approach is used to derive an uncertainty associated with the data-simulation
+207
+corrections. Potential imperfections in the matching of true decays to reconstructed
+208
+candidates in the simulation is a further source of uncertainty. To assess this uncertainty,
+209
+a pseudoexperiment is generated according to an efficiency model derived with a more
+210
+relaxed set of matching criteria on the pion and muon tracks.
+211
+Five sources of systematic uncertainty are considered related to choices made in
+212
+modelling the mass and angular distributions of the signal and background components.
+213
+To assess the impact of neglecting the signal angular resolution, a pseudoexperiment is
+214
+generated with the θl distribution broadened according to the resolution obtained in the
+215
+simulation. The systematic uncertainty associated to the assumption that the π+µ+µ−
+216
+mass and cos θl distributions factorise for misidentified B+ →K+µ+µ−decays is assessed
+217
+6
+
+by producing a pseudoexperiment in which the B+ →K+µ+µ−background component is
+218
+modelled nonparametrically with events sampled from simulation. The uncertainty due to
+219
+the combinatorial background model is assessed by relaxing the classifier requirement and
+220
+fitting the upper mass sideband of the data using a fourth-order polynomial function. The
+221
+shape parameters from this fit are subsequently used when generating the combinatorial
+222
+background component of a pseudoexperiment. Finally, uncertainties due to neglecting
+223
+hadronic backgrounds from B+ →K+π−π+, B+ →π+π−π+and B0
+s →f0(980)µ+µ−decays
+224
+are determined by including additional background components in the pseudoexperiment
+225
+generation. The mass and angular distribution of the hadronic background components
+226
+are based on simulated B+ →K+π−π+ and B+ →π+π−π+decays that are weighted to
+227
+reproduce the Dalitz structure of the decays measured by BaBar [40] and LHCb [41],
+228
+respectively. The yield of the hadronic background is determined using control regions of
+229
+the data with relaxed muon-identification requirements.
+230
+6
+Results
+231
+The π+µ+µ−mass and cos θl distributions of selected B+ →J/ψπ+ candidates are shown
+232
+in Fig. 3. Excellent agreement is found between the data and the result of the fit, indicating
+233
+that the signal efficiency is well described by the corrected simulation. The FH and AFB
+234
+parameters are found to be consistent with zero, as expected for these decays. Similarly,
+235
+FH and AFB determined from the fit to the B+ →J/ψK+sample are found to be consistent
+236
+with zero.
+237
+The π+µ+µ−mass and cos θl distributions of the selected candidates in the two q2
+238
+regions are shown in Fig. 4. The data are described well by the result of the fit. The
+239
+discontinuity in cos θl (visible in the 1.1 < q2 < 6.0 GeV2/c4 range) arises from the J/ψ
+240
+veto. The observed signal yields are 89 ± 13 and 135 ± 15 events in the low- and high-q2
+241
+regions, respectively. The uncertainties quoted on the yields are purely statistical and
+242
+are determined by repeating the fit on pseudodata generated by bootstrapping the data
+243
+set [42]. Figure 5 shows the one-dimensional cos θl distributions within the mass interval
+244
+5260 < m(π+µ+µ−) < 5300 MeV/c2, corresponding to a window of approximately twice
+245
+the π+µ+µ−mass resolution around the known B+ meson mass.
+246
+The values of AFB and FH for the two q2 intervals are given in Table 2 and are shown
+247
+in Fig. 6. Two-dimensional confidence interval regions for AFB and FH are shown in
+248
+Fig. 7. At low q2, the data show a non-zero AFB value and a large value of FH that are
+249
+not consistent with the SM point within 95% confidence level (CL), but are consistent
+250
+within 99% CL. At high q2, the data show values of AFB and FH that are consistent with
+251
+the SM point within 68% CL.
+252
+Stability tests of the results are conducted by imposing alternative selection criteria on
+253
+the output of the boosted-decision-tree background classifier, by applying more stringent
+254
+particle-identification requirements, and by determining FH independently of AFB through
+255
+an alternative fit to the distribution of the absolute value of cos θl. All these studies yield
+256
+results that are consistent with the baseline measurements.
+257
+As an additional test, the cos θl distribution in data was examined for B+ →K+µ+µ−
+258
+decays reconstructed in the low- and high-q2 regions. The candidates were selected
+259
+using the same criteria as for the signal mode, with the exception of the particle-
+260
+identification requirements on the charged kaon, for which the criteria used in the selection
+261
+7
+
+5200
+5400
+5600
+5800
+6000
+]
+2c
+) [MeV/
+−
+µ
++
+µ
++
+π
+(
+m
+0
+5000
+10000
+15000
+2c
+Candidates per 10.0 MeV/
+Data
+Total fit
+ 
++
+π
+) 
+−
+µ
++
+µ
+(
+ψ
+J/
+ 
+→
+ 
++
+B
++
+K
+) 
+−
+µ
++
+µ
+(
+ψ
+J/
+ 
+→
+ 
++
+B
+Combinatorial
+LHCb
+ 1
+−
+9 fb
+1
+−
+0.5
+−
+0
+0.5
+1
+l
+θ
+cos 
+0
+1000
+2000
+3000
+Candidates per 0.025 
+LHCb
+ 1
+−
+9 fb
+Figure 3: Distribution of (left) the π+µ+µ−mass and (right) cos θl for selected B+ →J/ψπ+
+candidates. The data are overlaid with the result of the fit described in the text.
+5200
+5400
+5600
+5800
+6000
+]
+2c
+) [MeV/
+−
+µ
++
+µ
++
+π
+(
+m
+0
+50
+100
+150
+2c
+Candidates per 41.0 MeV/
+Data
+Total fit
+ 
+−
+µ
++
+µ
++
+π
+ 
+→
+ 
++
+B
+ 
+−
+µ
++
+µ
++
+K
+ 
+→
+ 
++
+B
+Combinatorial
+LHCb
+ 1
+−
+9 fb
+4
+c/
+2
+ < 6.0 GeV
+2
+q
+  1.1 < 
+1
+−
+0.5
+−
+0
+0.5
+1
+l
+θ
+cos 
+0
+10
+20
+30
+40
+50
+Candidates per 0.1 
+LHCb
+ 1
+−
+9 fb
+4
+c/
+2
+ < 6.0 GeV
+2
+q
+  1.1 < 
+5200
+5400
+5600
+5800
+6000
+]
+2c
+) [MeV/
+−
+µ
++
+µ
++
+π
+(
+m
+0
+50
+100
+150
+2c
+Candidates per 41.0 MeV/
+Data
+Total fit
+ 
+−
+µ
++
+µ
++
+π
+ 
+→
+ 
++
+B
+ 
+−
+µ
++
+µ
++
+K
+ 
+→
+ 
++
+B
+Combinatorial
+LHCb
+ 1
+−
+9 fb
+4
+c/
+2
+ < 22.0 GeV
+2
+q
+15.0 < 
+1
+−
+0.5
+−
+0
+0.5
+1
+l
+θ
+cos 
+0
+10
+20
+30
+40
+50
+Candidates per 0.1 
+LHCb
+ 1
+−
+9 fb
+4
+c/
+2
+ < 22.0 GeV
+2
+q
+15.0 < 
+Figure 4: Distribution of (left) the π+µ+µ−mass and (right) cos θl for selected B+ →π+µ+µ−
+candidates in the range (top) 1.1 < q2 < 6.0 and (bottom) 15.0 < q2 < 22.0 GeV2/c4. The data
+are overlaid with the result of the fit described in the text.
+of B+ →J/ψK+decays were applied. In both the low- and high-q2 regions, no significant
+262
+asymmetry was observed for B+ →K+µ+µ−decays.
+263
+8
+
+1
+−
+0.5
+−
+0
+0.5
+1
+l
+θ
+cos 
+0
+10
+20
+30
+Candidates per 0.1 
+Data
+Total fit
+ 
+−
+µ
++
+µ
++
+π
+ 
+→
+ 
++
+B
+ 
+−
+µ
++
+µ
++
+K
+ 
+→
+ 
++
+B
+Combinatorial
+LHCb
+ 1
+−
+9 fb
+4
+c/
+2
+ < 6.0 GeV
+2
+q
+  1.1 < 
+1
+−
+0.5
+−
+0
+0.5
+1
+l
+θ
+cos 
+0
+10
+20
+30
+Candidates per 0.1 
+Data
+Total fit
+ 
+−
+µ
++
+µ
++
+π
+ 
+→
+ 
++
+B
+ 
+−
+µ
++
+µ
++
+K
+ 
+→
+ 
++
+B
+Combinatorial
+LHCb
+ 1
+−
+9 fb
+4
+c/
+2
+ < 22.0 GeV
+2
+q
+15.0 < 
+Figure 5: Distribution of cos θl for selected B+ →π+µ+µ−candidates in the range (left)
+1.1 < q2 < 6.0 and (right) 15.0 < q2 < 22.0 GeV2/c4. The candidates are required to be within the
+mass interval 5260 < m(π+µ+µ−) < 5300 MeV/c2, corresponding to a window of approximately
+twice the π+µ+µ−mass resolution around the known B+ meson mass. The data are overlaid
+with the result of the fit described in the text.
+Table 2: Values of AFB and FH obtained from the fit and Feldman–Cousins procedure. The
+intervals correspond to 68% confidence level.
+FH
+FH interval
+AFB
+AFB interval
+1.1 < q2 < 6.0 GeV2/c4
+0.91
+[0.60, 0.99]
+0.27
+[ 0.11, 0.42]
+15.0 < q2 < 22.0 GeV2/c4
+0.04
+[0.00, 0.20]
+0.02
+[−0.02, 0.09]
+0
+5
+10
+15
+20
+25
+]
+2c
+ [GeV/
+2
+q
+0
+0.5
+1
+H
+F
+LHCb
+ 1
+−
+9 fb
+0
+5
+10
+15
+20
+25
+]
+2c
+ [GeV/
+2
+q
+1
+−
+0.5
+−
+0
+0.5
+1
+FB
+A
+LHCb
+ 1
+−
+9 fb
+Figure 6: Parameters FH and AFB in bins of dimuon mass squared, q2. The marker indicates
+the best-fit value from the likelihood fit. The boxes represent the 68% confidence level intervals
+as determined using the Feldman–Cousins construction. The outer bars represent the total
+uncertainty, obtained by adding in quadrature the additional contribution arising from the
+systematic uncertainty of the measurement.
+7
+Summary
+264
+The angular distribution of the B+ →π+µ+µ−decay is studied for the first time using a
+265
+dataset of pp collisions corresponding to 9 fb−1 of integrated luminosity, collected with the
+266
+9
+
+0.4
+−
+0.2
+−
+0
+0.2
+0.4
+FB
+A
+0
+0.2
+0.4
+0.6
+0.8
+1
+H
+F
+SM
+σ
+3
+σ
+2
+σ
+1
+LHCb
+ 1
+−
+9 fb
+4c/
+2
+ < 6.0 GeV
+2
+q
+  1.1 < 
+0.4
+−
+0.2
+−
+0
+0.2
+0.4
+FB
+A
+0
+0.2
+0.4
+0.6
+0.8
+1
+H
+F
+SM
+σ
+3
+σ
+2
+σ
+1
+LHCb
+ 1
+−
+9 fb
+4c/
+2
+ < 22.0 GeV
+2
+q
+15.0 < 
+Figure 7: Two-dimensional confidence level regions obtained with the Feldman–Cousins procedure
+for AFB and FH in the q2 regions (left) 1.1 < q2 < 6.0 and (right) 15.0 < q2 < 22.0 GeV2/c4.
+The one-, two-, and three-sigma regions are indicated in violet, blue, and green, respectively,
+corresponding to the associated statistical intervals. The line contours represent the corresponding
+confidence levels obtained when systematic uncertainties are combined in quadrature. The
+boundary of the physical region in which the probability distribution of the signal remains
+positive for all values of cos θl is shown by the gray lines.
+LHCb experiment. The angular observables AFB and FH, which parameterise the angular
+267
+distribution of the decay, are found to be consistent with Standard Model (SM) predictions
+268
+at the 99% confidence level (CL) in the dimuon mass squared region 1.1 < q2 < 6.0 GeV2/c4
+269
+and at the 68% CL in the region 15.0 < q2 < 22.0 GeV2/c4. These findings are in agreement
+270
+with previous determinations of the corresponding observables in the B+ →K+µ+µ−
+271
+decay [16].
+272
+Acknowledgements
+273
+We express our gratitude to our colleagues in the CERN accelerator departments for
+274
+the excellent performance of the LHC. We thank the technical and administrative staff
+275
+at the LHCb institutes. We acknowledge support from CERN and from the national
+276
+agencies: ARC (Australia); CAPES, CNPq, FAPERJ and FINEP (Brazil); MOST and
+277
+NSFC (China); CNRS/IN2P3 (France); BMBF, DFG and MPG (Germany); INFN (Italy);
+278
+NWO (Netherlands); MNiSW and NCN (Poland); MCID/IFA (Romania); MICIU and
+279
+AEI (Spain); SNSF and SER (Switzerland); NASU (Ukraine); STFC (United Kingdom);
+280
+DOE NP and NSF (USA). We acknowledge the computing resources that are provided
+281
+by ARDC (Australia), CBPF (Brazil), CERN, IHEP and LZU (China), IN2P3 (France),
+282
+KIT and DESY (Germany), INFN (Italy), SURF (Netherlands), Polish WLCG (Poland),
+283
+IFIN-HH (Romania), PIC (Spain), CSCS (Switzerland), and GridPP (United Kingdom).
+284
+We are indebted to the communities behind the multiple open-source software packages
+285
+on which we depend. Individual groups or members have received support from Key
+286
+Research Program of Frontier Sciences of CAS, CAS PIFI, CAS CCEPP, Fundamental
+287
+Research Funds for the Central Universities, and Sci. & Tech. Program of Guangzhou
+288
+(China); Minciencias (Colombia); EPLANET, Marie Sk lodowska-Curie Actions, ERC and
+289
+NextGenerationEU (European Union); A*MIDEX, ANR, IPhU and Labex P2IO, and
+290
+R´egion Auvergne-Rhˆone-Alpes (France); Alexander-von-Humboldt Foundation (Germany);
+291
+10
+
+ICSC (Italy); Severo Ochoa and Mar´ıa de Maeztu Units of Excellence, GVA, XuntaGal,
+292
+GENCAT, InTalent-Inditex and Prog. Atracci´on Talento CM (Spain); SRC (Sweden); the
+293
+Leverhulme Trust, the Royal Society and UKRI (United Kingdom).
+294
+11
+
+Supplementary material for LHCb-PAPER-2026-015
+295
+Figure 8 shows the signal selection efficiency, after applying the complete set of selection
+296
+criteria, as a two-dimensional function of q2 and cos θl. Figure 9 shows the K+µ+µ−mass
+297
+and cos θl distributions of selected B+ →J/ψK+decays. The observables AFB and FH are
+298
+determined by performing a fit to the mass and cos θl distributions. The signal model
+299
+is modified to remove the J/ψ veto and the angular efficiency is derived from simulated
+300
+B+ →J/ψK+decays over the appropriate q2 range. Only the combinatorial-background
+301
+component is included. Background from incorrectly identified B+ →J/ψπ+ decays, which
+302
+populates the region to the right of the B+ →J/ψK+, signal is small and is neglected.
+303
+The resulting values of AFB and FH are consistent with zero, as expected. The difference
+304
+in negative log-likelihood of the fit between the best-fit point and the tested point in AFB
+305
+and FH is shown for selected B+ →J/ψK+and B+ →J/ψπ+ decays in Fig. 10.
+306
+Table 3 lists the fitted values of the parameters obtained from fits to the B+ →π+µ+µ−
+307
+data in both the low- and high-q2 regions. Figure 11 presents the confidence intervals for
+308
+FH and AFB obtained using the Feldman–Cousins construction, where the parameters are
+309
+treated independently in the interval determination. Figure 12 shows the raw forward-
+310
+backward asymmetry in the number of forward and backward going µ+,
+311
+aFB = N(cos θl > 0) −N(cos θl < 0)
+N(cos θl > 0) + N(cos θl < 0) ,
+as a function of the π+µ+µ−mass.
+312
+Figure 13 shows the fit projections of a two-dimensional fit to the joint distribution
+313
+of the π+µ+µ−mass and the absolute value of cos θl, performed as a consistency check
+314
+to extract FH using an alternative estimation strategy that does not depend on AFB.
+315
+Figure 14 shows the one-dimensional distribution of the absolute value of cos θl within the
+316
+mass interval 5260 < m(π+µ+µ−) < 5300 MeV/c2. In this case, the angular distribution
+317
+normalised by the total decay rate, is given by
+318
+1
+Γ
+dΓ
+d|cos θl| = 3
+2(1 −FH)(1 −|cos θl|2) + FH .
+0
+0.005
+0.01
+0.015
+0.02
+0.025
+0.03
+2
+3
+4
+5
+6
+]
+4c
+/
+2
+ [GeV
+2
+q
+1
+−
+0.8
+−
+0.6
+−
+0.4
+−
+0.2
+−
+0
+0.2
+0.4
+0.6
+0.8
+1
+l
+θ
+cos
+LHCb
+Simulation
+0
+0.005
+0.01
+0.015
+0.02
+0.025
+0.03
+16
+18
+20
+22
+]
+4c
+/
+2
+ [GeV
+2
+q
+1
+−
+0.8
+−
+0.6
+−
+0.4
+−
+0.2
+−
+0
+0.2
+0.4
+0.6
+0.8
+1
+l
+θ
+cos
+LHCb
+Simulation
+Figure 8: Efficiency as a function of q2 and cos θl for B+ →π+µ+µ−decays in simulation in the
+q2 regions (left) 1.1 < q2 < 6.0 and (right) 15.0 < q2 < 22.0 GeV2/c4.
+12
+
+Table 3: Results of the fit to the B+ →π+µ+µ−data set. The fit results are reported for
+the signal angular coefficients AFB and FH, for the event yields of the signal component and
+of the misidentified B+ →K+µ+µ−and combinatorial background components, for the slope
+parameter (e0) of the exponential model describing the combinatorial m(π+µ+µ−) distribution,
+and for the parameters (p1 and p2) associated with the first and second coefficients of a
+second-order Chebyshev polynomial used to model the combinatorial angular distribution. The
+quoted uncertainties are purely statistical and are obtained from the likelihood minimisation
+procedure. For the high-q2 interval, the covariance matrix is not positive definite and therefore
+the uncertainties should be interpreted with caution.
+Parameter
+1.1 < q2 < 6.0 GeV2/c4
+15.0 < q2 < 22.0 GeV2/c4
+AFB
+0.26 ± 0.15
+0.02 ± 0.20
+FH
+0.91 ± 0.50
+0.04 ± 0.81
+Signal B+ →π+µ+µ−yield
+90 ± 15
+134 ± 30
+Misidentified B+ →K+µ+µ−yield
+86 ± 17
+27 ± 22
+Combinatorial background yield
+216 ± 22
+320 ± 24
+Combinatorial e0 [(GeV/c2)−1]
+−3.06 ± 0.50
+−1.62 ± 1.03
+Combinatorial p1
+0.25 ± 0.16
+0.32 ± 0.15
+Combinatorial p2
+−0.86 ± 0.13
+−0.05 ± 0.29
+5200
+5400
+5600
+5800
+6000
+]
+2c
+) [MeV/
+−
+µ
++
+µ
++
+K
+(
+m
+0
+100
+200
+300
+400
+3
+10
+×
+2c
+Candidates per 10.0 MeV/
+Data
+Total fit
+ 
++
+K
+) 
+−
+µ
++
+µ
+(
+ψ
+J/
+ 
+→
+ 
++
+B
+Combinatorial
+LHCb
+ 1
+−
+9 fb
+1
+−
+0.5
+−
+0
+0.5
+1
+l
+θ
+cos 
+0
+10000
+20000
+30000
+40000
+Candidates per 0.025 
+LHCb
+ 1
+−
+9 fb
+Figure 9: Distribution of (left) K+µ+µ−mass and (right) cos θl for selected B+ →J/ψK+decays.
+The data are overlaid with the result of the fit described in the text. The contribution from
+combinatorial background is negligible and thus barely visible.
+13
+
+0.4
+−
+0.2
+−
+0
+0.02
+0.04
+FB
+A
+0
+0.02
+0.04
+0.06
+0.08
+0.1
+H
+F
+0
+5000
+10000
+LHCb
+1
+−
+9 fb
+0.4
+−
+0.2
+−
+0
+0.02
+0.04
+FB
+A
+0
+0.02
+0.04
+0.06
+0.08
+0.1
+H
+F
+0
+100
+200
+300
+LHCb
+1
+−
+9 fb
+Figure 10: Difference in negative log-likelihood between the best fit and the tested point as a
+function of AFB and FH from the fits to selected (left) B+ →J/ψK+and (right) B+ →J/ψπ+
+decays.
+0.4
+−
+0.2
+−
+0
+0.2
+0.4
+FB
+A
+0
+0.2
+0.4
+0.6
+0.8
+1
+CL
+LHCb
+ 1
+−
+9 fb
+4
+c/
+2
+ < 6.0 GeV
+2
+q
+  1.1 < 
+0
+0.2
+0.4
+0.6
+0.8
+1
+H
+F
+0
+0.2
+0.4
+0.6
+0.8
+1
+CL
+LHCb
+ 1
+−
+9 fb
+4
+c/
+2
+ < 6.0 GeV
+2
+q
+  1.1 < 
+0.4
+−
+0.2
+−
+0
+0.2
+0.4
+FB
+A
+0
+0.2
+0.4
+0.6
+0.8
+1
+CL
+LHCb
+ 1
+−
+9 fb
+4
+c/
+2
+ < 22.0 GeV
+2
+q
+15.0 < 
+0
+0.2
+0.4
+0.6
+0.8
+1
+H
+F
+0
+0.2
+0.4
+0.6
+0.8
+1
+CL
+LHCb
+ 1
+−
+9 fb
+4
+c/
+2
+ < 22.0 GeV
+2
+q
+15.0 < 
+Figure 11: Confidence level from the Feldman-Cousins procedure for (left) AFB and (right) FH
+for q2 in the range (top) 1.1 < q2 < 6.0 and (bottom) 15.0 < q2 < 22.0 GeV2/c4. The confidence
+level for each observable is obtained by treating the other one as a nuisance parameter. The filled
+violet region denotes the confidence intervals derived using the Feldman–Cousins construction
+and reflects only statistical uncertainties. The solid violet curve indicates the corresponding
+confidence intervals obtained when statistical and systematic uncertainties are combined in
+quadrature. The horizontal solid red and dashed orange lines indicate the one- and two-standard-
+deviation confidence levels, respectively.
+14
+
+5200
+5400
+5600
+5800
+6000
+)
++
+µ
+−
+µ
++
+π
+(
+m
+1
+−
+0.5
+−
+0
+0.5
+1
+FB
+a
+LHCb
+ 1
+−
+9 fb
+4c/
+2
+ < 6.0 GeV
+2
+q
+  1.1 < 
+5200
+5400
+5600
+5800
+6000
+)
++
+µ
+−
+µ
++
+π
+(
+m
+1
+−
+0.5
+−
+0
+0.5
+1
+FB
+a
+LHCb
+1
+−
+9 fb
+4c/
+2
+ < 22.0 GeV
+2
+q
+  15.0 < 
+Figure 12: Raw forward-backward asymmetry for selected B+ →π+µ+µ−candidates in the
+range (left) 1.1 < q2 < 6.0 and (right) 15.0 < q2 < 22.0 GeV2/c4.
+5200
+5400
+5600
+5800
+6000
+]
+2c
+) [MeV/
+−
+µ
++
+µ
++
+π
+(
+m
+0
+50
+100
+150
+2c
+Candidates per 41.0 MeV/
+Data
+Total fit
+ 
+−
+µ
++
+µ
++
+π
+ 
+→
+ 
++
+B
+ 
+−
+µ
++
+µ
++
+K
+ 
+→
+ 
++
+B
+Combinatorial
+LHCb
+ 1
+−
+9 fb
+4
+c/
+2
+ < 6.0 GeV
+2
+q
+  1.1 < 
+0
+0.2
+0.4
+0.6
+0.8
+1
+|l
+θ
+cos 
+|
+0
+10
+20
+30
+40
+50
+Candidates per 0.05 
+LHCb
+ 1
+−
+9 fb
+4
+c/
+2
+ < 6.0 GeV
+2
+q
+  1.1 < 
+5200
+5400
+5600
+5800
+6000
+]
+2c
+) [MeV/
+−
+µ
++
+µ
++
+π
+(
+m
+0
+50
+100
+150
+2c
+Candidates per 41.0 MeV/
+Data
+Total fit
+ 
+−
+µ
++
+µ
++
+π
+ 
+→
+ 
++
+B
+ 
+−
+µ
++
+µ
++
+K
+ 
+→
+ 
++
+B
+Combinatorial
+LHCb
+ 1
+−
+9 fb
+4
+c/
+2
+ < 22.0 GeV
+2
+q
+15.0 < 
+0
+0.2
+0.4
+0.6
+0.8
+1
+|l
+θ
+cos 
+|
+0
+10
+20
+30
+40
+50
+Candidates per 0.05 
+LHCb
+ 1
+−
+9 fb
+4
+c/
+2
+ < 22.0 GeV
+2
+q
+15.0 < 
+Figure 13:
+Distribution of (left) the π+µ+µ−mass and (right) absolute value of cos θl
+for selected B+ →π+µ+µ−candidates in the range (top) 1.1 < q2 < 6.0 and (bot-
+tom) 15.0 < q2 < 22.0 GeV2/c4.
+The data are overlaid with the result of the fit described
+in the text. The discontinuity in cos θl (visible in the 1.1 < q2 < 6.0 GeV2/c4 range) arises from
+the J/ψ veto.
+15
+
+0
+0.2
+0.4
+0.6
+0.8
+1
+|l
+θ
+cos 
+|
+0
+10
+20
+30
+Candidates per 0.05 
+Data
+Total fit
+ 
+−
+µ
++
+µ
++
+π
+ 
+→
+ 
++
+B
+ 
+−
+µ
++
+µ
++
+K
+ 
+→
+ 
++
+B
+Combinatorial
+LHCb
+ 1
+−
+9 fb
+4
+c/
+2
+ < 6.0 GeV
+2
+q
+  1.1 < 
+0
+0.2
+0.4
+0.6
+0.8
+1
+|l
+θ
+cos 
+|
+0
+10
+20
+30
+Candidates per 0.05 
+Data
+Total fit
+ 
+−
+µ
++
+µ
++
+π
+ 
+→
+ 
++
+B
+ 
+−
+µ
++
+µ
++
+K
+ 
+→
+ 
++
+B
+Combinatorial
+LHCb
+ 1
+−
+9 fb
+4
+c/
+2
+ < 22.0 GeV
+2
+q
+15.0 < 
+Figure 14: Distribution of the absolute value of cos θl for selected B+ →π+µ+µ−candidates
+in the range (left) 1.1 < q2 < 6.0 and (right) 15.0 < q2 < 22.0 GeV2/c4. The candidates are
+required to be within the mass interval 5260 < m(π+µ+µ−) < 5300 MeV/c2, corresponding to a
+window of approximately twice the π+µ+µ−mass resolution, centred on the known B+ mass.
+The data are overlaid with the result of the fit described in the text. The discontinuity in cos θl
+(visible in the 1.1 < q2 < 6.0 GeV2/c4 range) arises from the J/ψ veto.
+16
+
+References
+319
+[1] N. Cabibbo, Unitary symmetry and leptonic decays, Phys. Rev. Lett. 10 (1963) 531.
+320
+[2] M. Kobayashi and T. Maskawa, CP-violation in the renormalizable theory of weak
+321
+interaction, Prog. Theor. Phys. 49 (1973) 652.
+322
+[3] LHCb collaboration, R. Aaij et al., First observation of the decay B+ →π+µ+µ−,
+323
+JHEP 12 (2012) 125, arXiv:1210.2645.
+324
+[4] LHCb collaboration, R. Aaij et al., First measurement of the differential branching
+325
+fraction and CP asymmetry of the B+ →π+µ+µ−decay, JHEP 10 (2015) 034,
+326
+arXiv:1509.00414.
+327
+[5] A. Ali, A. Y. Parkhomenko, and A. V. Rusov, Precise calculation of the dilepton
+328
+invariant-mass spectrum and the decay rate in B± →π±µ+µ−in the SM, Phys. Rev.
+329
+D89 (2014) 094021, arXiv:1312.2523.
+330
+[6] C. Hambrock, A. Khodjamirian, and A. Rusov, Hadronic effects and observables in
+331
+B →πℓ+ℓ−decay at large recoil, Phys. Rev. D92 (2015) 074020, arXiv:1506.07760.
+332
+[7] Fermilab Lattice and MILC collaborations, J. A. Bailey et al., B →πℓℓform factors
+333
+for new-physics searches from lattice QCD, Phys. Rev. Lett. 115 (2015) 152002,
+334
+arXiv:1507.01618.
+335
+[8] C. Bobeth, G. Hiller, and G. Piranishvili, Angular distributions of ¯B →¯Kℓ+ℓ−
+336
+decays, JHEP 12 (2007) 040, arXiv:0709.4174.
+337
+[9] A. Ali, P. Ball, L. T. Handoko, and G. Hiller, A comparative study of the decays
+338
+B →(K, K∗)ℓ+ℓ−in standard model and supersymmetric theories, Phys. Rev. D61
+339
+(2000) 074024, arXiv:hep-ph/9910221.
+340
+[10] F. Beaujean, C. Bobeth, and S. Jahn, Constraints on tensor and scalar couplings
+341
+from B →K¯µµ and Bs →¯µµ, Eur. Phys. J. C75 (2015) 456, arXiv:1508.01526.
+342
+[11] G. Isidori, S. Nabeebaccus, and R. Zwicky, QED corrections in B →Kℓ+ℓ−at the
+343
+double-differential level, JHEP 12 (2020) 104, arXiv:2009.00929.
+344
+[12] BaBar collaboration, B. Aubert et al., Measurements of branching fractions, rate
+345
+asymmetries, and angular distributions in the rare decays B →Kℓ+ℓ−and B →
+346
+K∗ℓ+ℓ−, Phys. Rev. D73 (2006) 092001, arXiv:hep-ex/0604007.
+347
+[13] Belle collaboration, J.-T. Wei et al., Measurement of the differential branching fraction
+348
+and forward-backward asymmetry for B →K(∗)ℓ+ℓ−, Phys. Rev. Lett. 103 (2009)
+349
+171801, arXiv:0904.0770.
+350
+[14] CDF collaboration, T. Aaltonen et al., Measurements of the angular distribu-
+351
+tions in the decays B →K(∗)µ+µ−at CDF, Phys. Rev. Lett. 108 (2012) 081807,
+352
+arXiv:1108.0695.
+353
+17
+
+[15] CMS collaboration, A. M. Sirunyan et al., Angular analysis of the decay B+ →
+354
+K+µ+µ−in proton-proton collisions at √s = 8 TeV, Phys. Rev. D98 (2018) 112011,
+355
+arXiv:1806.00636.
+356
+[16] LHCb collaboration, R. Aaij et al., Angular analysis of charged and neutral
+357
+B →Kµ+µ−decays, JHEP 05 (2014) 082, arXiv:1403.8045.
+358
+[17] LHCb collaboration, A. A. Alves Jr. et al., The LHCb detector at the LHC, JINST 3
+359
+(2008) S08005.
+360
+[18] LHCb collaboration, R. Aaij et al., LHCb detector performance, Int. J. Mod. Phys.
+361
+A30 (2015) 1530022, arXiv:1412.6352.
+362
+[19] R. Aaij et al., Performance of the LHCb Vertex Locator, JINST 9 (2014) P09007,
+363
+arXiv:1405.7808.
+364
+[20] R. Arink et al., Performance of the LHCb Outer Tracker, JINST 9 (2014) P01002,
+365
+arXiv:1311.3893.
+366
+[21] P. d’Argent et al., Improved performance of the LHCb Outer Tracker in LHC Run 2,
+367
+JINST 12 (2017) P11016, arXiv:1708.00819.
+368
+[22] M. Adinolfi et al., Performance of the LHCb RICH detector at the LHC, Eur. Phys.
+369
+J. C73 (2013) 2431, arXiv:1211.6759.
+370
+[23] A. A. Alves Jr. et al., Performance of the LHCb muon system, JINST 8 (2013)
+371
+P02022, arXiv:1211.1346.
+372
+[24] R. Aaij et al., The LHCb trigger and its performance in 2011, JINST 8 (2013) P04022,
+373
+arXiv:1211.3055.
+374
+[25] N. Grieser et al., The LHCb stripping project: Sustainable legacy data processing for
+375
+high-energy physics, Comput. Softw. Big. Sci. 9 (2025) 21, arXiv:2509.05294.
+376
+[26] T. Sj¨ostrand, S. Mrenna, and P. Skands, A brief introduction to PYTHIA 8.1, Comput.
+377
+Phys. Commun. 178 (2008) 852, arXiv:0710.3820.
+378
+[27] I. Belyaev et al., Handling of the generation of primary events in Gauss, the LHCb
+379
+simulation framework, J. Phys. Conf. Ser. 331 (2011) 032047.
+380
+[28] D. J. Lange, The EvtGen particle decay simulation package, Nucl. Instrum. Meth.
+381
+A462 (2001) 152.
+382
+[29] N. Davidson, T. Przedzinski, and Z. Was, PHOTOS interface in C++: Technical
+383
+and physics documentation, Comp. Phys. Comm. 199 (2016) 86, arXiv:1011.0937.
+384
+[30] P. Ball and R. Zwicky, New results on B →π, K, η decay form factors from light-cone
+385
+sum rules, Phys. Rev. D71 (2005) 014015, arXiv:hep-ph/0406232.
+386
+[31] Geant4 collaboration, J. Allison et al., Geant4 developments and applications, IEEE
+387
+Trans. Nucl. Sci. 53 (2006) 270; Geant4 collaboration, S. Agostinelli et al., Geant4:
+388
+A simulation toolkit, Nucl. Instrum. Meth. A506 (2003) 250.
+389
+18
+
+[32] M. Clemencic et al., The LHCb simulation application, Gauss: Design, evolution and
+390
+experience, J. Phys. Conf. Ser. 331 (2011) 032023.
+391
+[33] V. V. Gligorov and M. Williams, Efficient, reliable and fast high-level triggering using
+392
+a bonsai boosted decision tree, JINST 8 (2013) P02013, arXiv:1210.6861.
+393
+[34] T. Likhomanenko et al., LHCb topological trigger reoptimization, J. Phys. Conf. Ser.
+394
+664 (2015) 082025, arXiv:1510.00572.
+395
+[35] LHCb collaboration, R. Aaij et al., Search for B∗0
+(s) →µ+µ−in B+
+c →π+µ+µ−decays,
+396
+Eur. Phys. J C85 (2025) 20, arXiv:2409.17209.
+397
+[36] Particle Data Group, S. Navas et al., Review of particle physics, Phys. Rev. D110
+398
+(2024) 030001.
+399
+[37] LHCb collaboration, R. Aaij et al., Study of the rare B0
+s and B0 decays into the
+400
+π+π−µ+µ−final state, Phys. Lett. B743 (2015) 46, arXiv:1412.6433.
+401
+[38] LHCb collaboration, R. Aaij et al., Study of the kinematic dependences of Λ0
+b produc-
+402
+tion in pp collisions and a measurement of the Λ0
+b →Λ+
+c π−branching fraction, JHEP
+403
+08 (2014) 143, arXiv:1405.6842.
+404
+[39] G. J. Feldman and R. D. Cousins, A Unified approach to the classical statistical
+405
+analysis of small signals, Phys. Rev. D57 (1998) 3873, arXiv:physics/9711021.
+406
+[40] BaBar collaboration, B. Aubert et al., Evidence for direct CP violation from Dalitz-
+407
+plot analysis of B± →K±π∓π±, Phys. Rev. D78 (2008) 012004, arXiv:0803.4451.
+408
+[41] LHCb collaboration, R. Aaij et al., Amplitude analysis of the B+ →π+π+π−decay,
+409
+Phys. Rev. D101 (2020) 012006, arXiv:1909.05212.
+410
+[42] B. Efron, Bootstrap methods: Another look at the jackknife, Ann. Statist. 7 (1979) 1.
+411
+19
+
+LHCb collaboration
+R. Aaij38
+, M. Abdelfatah69, A.S.W. Abdelmotteleb57
+, C. Abellan Beteta51
+,
+412
+F. Abudin´en59
+, T. Ackernley61
+, A. A. Adefisoye69
+, B. Adeva47
+, M. Adinolfi55
+,
+413
+P. Adlarson87,42
+, C. Agapopoulou14
+, C.A. Aidala89
+, S. Akar11
+, K. Akiba38
+,
+414
+P. Albicocco28
+, J. Albrecht19,f
+, R. Aleksiejunas81
+, F. Alessio49
+,
+415
+P. Alvarez Cartelle47
+, S. Amato3
+, J.L. Amey55
+, Y. Amhis14
+, L. An6
+,
+416
+L. Anderlini27
+, M. Andersson51
+, P. Andreola51
+, M. Andreotti26
+, S.
+417
+Andres Estrada44
+, A. Anelli31,o
+, D. Ao7
+, C. Arata12
+, F. Archilli37
+, Z. Areg69
+,
+418
+M. Argenton26
+, S. Arguedas Cuendis9,49
+, L. Arnone31,o
+, M. Artuso69
+,
+419
+E. Aslanides13
+, R. Ata´ıde Da Silva50
+, M. Atzeni65
+, B. Audurier12
+, J. A. Authier15
+,
+420
+D. Bacher64
+, I. Bachiller Perea50
+, S. Bachmann22
+, M. Bachmayer50
+, J.J. Back57
+, Z.
+421
+B. Bai8
+, V. Balagura15
+, A. Balboni26
+, W. Baldini26
+, Z. Baldwin79
+, L. Balzani19
+,
+422
+H. Bao7
+, J. Baptista de Souza Leite2
+, C. Barbero Pretel47,12
+, M. Barbetti27
+, I.
+423
+R. Barbosa70
+, R.J. Barlow63,†
+, M. Barnyakov25
+, S. Baron49, S. Barsuk14
+,
+424
+W. Barter59
+, J. Bartz69
+, S. Bashir40
+, B. Batsukh82
+, P. B. Battista14
+, A.
+425
+Bavarchee80
+, A. Bay50
+, A. Beck65
+, M. Becker19
+, F. Bedeschi35
+, I.B. Bediaga2
+, N.
+426
+A. Behling19
+, S. Belin47
+, A. Bellavista25
+, I. Belov29
+, I. Belyaev36
+,
+427
+G. Bencivenni28
+, E. Ben-Haim16
+, J.L.M. Berkey68
+, R. Bernet51
+, A. Bertolin33
+,
+428
+F. Betti59
+, J. Bex56
+, O. Bezshyyko88
+, S. Bhattacharya80
+, M.S. Bieker18
+,
+429
+N.V. Biesuz26
+, A. Biolchini38
+, M. Birch62
+, F.C.R. Bishop10
+, A. Bitadze63
+,
+430
+A. Bizzeti27,p
+, T. Blake57,b
+, F. Blanc50
+, J.E. Blank19
+, S. Blusk69
+,
+431
+J.A. Boelhauve19
+, O. Boente Garcia49
+, T. Boettcher90
+, A. Bohare59
+,
+432
+C. Bolognani19
+, R. Bolzonella26,l
+, R. B. Bonacci1
+, A. Bordelius49
+, F. Borgato33,49
+,
+433
+S. Borghi63
+, M. Borsato31,o
+, J.T. Borsuk86
+, E. Bottalico61
+, S.A. Bouchiba50
+, M.
+434
+Bovill64
+, T.J.V. Bowcock61
+, A. Boyer49
+, C. Bozzi26
+, J. D. Brandenburg91
+,
+435
+A. Brea Rodriguez50
+, N. Breer19
+, C. Breitfeld19
+, J. Brodzicka41
+, J. Brown61
+,
+436
+D. Brundu32
+, E. Buchanan59
+, M. Burgos Marcos84
+, C. Burr49
+, C. Buti27
+,
+437
+J.S. Butter56
+, J. Buytaert49
+, W. Byczynski49
+, S. Cadeddu32
+, H. Cai75
+, Y. Cai5
+,
+438
+A. Caillet16
+, R. Calabrese26,l
+, L. Calefice45
+, M. Calvi31,o
+, M. Calvo Gomez46
+,
+439
+P. Camargo Magalhaes2,a
+, J. I. Cambon Bouzas47
+, P. Campana28
+, A. C. Campos3
+,
+440
+A.F. Campoverde Quezada7
+, Y. Cao6, S. Capelli31,o
+, M. Caporale25
+, L. Capriotti33
+,
+441
+R. Caravaca-Mora9
+, A. Carbone25,j
+, L. Carcedo Salgado47
+, R. Cardinale29,m
+,
+442
+A. Cardini32
+, P. Carniti31
+, L. Carus22
+, A. Casais Vidal65
+, R. Caspary22
+,
+443
+G. Casse61
+, M. Cattaneo49
+, G. Cavallero26
+, V. Cavallini26,l
+, S. Celani49
+, I.
+444
+Celestino35,s
+, S. Cesare49,n
+, A.J. Chadwick61
+, I. Chahrour89
+, M. Charles16
+,
+445
+Ph. Charpentier49
+, E. Chatzianagnostou38
+, R. Cheaib80
+, M. Chefdeville10
+,
+446
+C. Chen57
+, J. Chen50
+, S. Chen5
+, Z. Chen7
+, A. Chen Hu62
+, M. Cherif12
+,
+447
+S. Chernyshenko53
+, X. Chiotopoulos84
+, G. Chizhik1
+, V. Chobanova44
+,
+448
+M. Chrzaszcz41
+, V. Chulikov28,36,49
+, P. Ciambrone28
+, M.F. Cicala57
+, X. Cid Vidal47
+,
+449
+P. Cifra49
+, P.E.L. Clarke59
+, M. Clemencic49
+, H.V. Cliff56
+, J. Closier49
+,
+450
+C. Cocha Toapaxi22
+, V. Coco49
+, J. Cogan13
+, E. Cogneras11
+, L. Cojocariu43
+, S.
+451
+Collaviti50
+, P. Collins49
+, T. Colombo49
+, M. Colonna19
+, A. Comerma-Montells45
+,
+452
+L. Congedo24
+, J. Connaughton57
+, A. Contu32
+, N. Cooke60
+, G. Cordova35,s
+, C.
+453
+Coronel66
+, I. Corredoira 12
+, A. Correia16
+, G. Corti49
+, G. C. Costantino61
+,
+454
+J. Cottee Meldrum55
+, B. Couturier49
+, D.C. Craik51
+, N. Crepet14
+,
+455
+M. Cruz Torres2,g
+, M. Cubero Campos9
+, E. Curras Rivera50
+, R. Currie59
+,
+456
+C.L. Da Silva68
+, X. Dai4
+, J. Dalseno44
+, C. D’Ambrosio62
+, G. Darze3
+, A.
+457
+Davidson57
+, J.E. Davies63
+, O. De Aguiar Francisco63
+, C. De Angelis32
+,
+458
+F. De Benedetti49
+, J. de Boer38
+, K. De Bruyn83
+, S. De Capua63
+, M. De Cian63
+,
+459
+20
+
+U. De Freitas Carneiro Da Graca2
+, E. De Lucia28
+, J.M. De Miranda2
+, L. De Paula3
+,
+460
+M. De Serio24,h
+, P. De Simone28
+, F. De Vellis19
+, J.A. de Vries84
+, F. Debernardis24
+,
+461
+D. Decamp10
+, S. Dekkers1
+, L. Del Buono16
+, B. Delaney65
+, J. Deng8
+,
+462
+V. Denysenko51
+, O. Deschamps11
+, F. Dettori32,k
+, B. Dey80
+, P. Di Nezza28
+,
+463
+S. Ding69
+, Y. Ding50
+, L. Dittmann22
+, A. D. Docheva60
+, A. Doheny57
+,
+464
+C. Dong4
+, F. Dordei32
+, A.C. dos Reis2
+, A. D. Dowling69
+, L. Dreyfus13
+,
+465
+W. Duan73
+, P. Duda86
+, L. Dufour50
+, V. Duk34
+, P. Durante49
+, M. M. Duras86
+,
+466
+J.M. Durham68
+, O. D. Durmus80
+, K. Duwe49
+, A. Dziurda41
+, S. Easo58
+,
+467
+E. Eckstein18
+, U. Egede1
+, S. Eisenhardt59
+, E. Ejopu61
+, L. Eklund87
+, M. Elashri66
+,
+468
+D. Elizondo Blanco9
+, J. Ellbracht19
+, S. Ely62
+, A. Ene43
+, J. Eschle69
+, T. Evans38
+,
+469
+F. Fabiano14
+, S. Faghih66
+, L.N. Falcao31,o
+, B. Fang7
+, R. Fantechi35
+,
+470
+L. Fantini34,r
+, M. Faria50
+, K. Farmer59
+, F. Fassin83,38
+, D. Fazzini31,o
+,
+471
+L. Felkowski86
+, C. Feng6, M. Feng5,7
+, A. Fernandez Casani48
+, M. Fernandez Gomez47
+,
+472
+A.D. Fernez67
+, F. Ferrari25,j
+, F. Ferreira Rodrigues3
+, M. Ferrillo51
+,
+473
+M. Ferro-Luzzi49
+, R.A. Fini24
+, M. Fiorini26,l
+, M. Firlej40
+, K.L. Fischer64
+,
+474
+D.S. Fitzgerald89
+, C. Fitzpatrick63
+, T. Fiutowski40
+, F. Fleuret15
+, A. Fomin52
+,
+475
+M. Fontana25,49
+, L. A. Foreman63
+, R. Forty49
+, D. Foulds-Holt59
+, V. Franco Lima3
+,
+476
+M. Franco Sevilla67
+, M. Frank49
+, E. Franzoso26,l
+, G. Frau63
+, C. Frei49
+,
+477
+D.A. Friday63,49
+, J. Fu7
+, Y. Fu5, Q. F¨uhring19,f,56
+, T. Fulghesu13
+, G. Galati24,h
+,
+478
+M.D. Galati38
+, A. Gallas Torreira47
+, D. Galli25,j
+, S. Gambetta59
+, M. Gandelman3
+,
+479
+P. Gandini30
+, B. Ganie63
+, H. Gao7
+, R. Gao64
+, T.Q. Gao56
+, Y. Gao8
+, Y. Gao6
+,
+480
+Y. Gao8
+, L.M. Garcia Martin50
+, P. Garcia Moreno45
+, J. Garc´ıa Pardi˜nas65
+, P.
+481
+Gardner67
+, L. Garrido45
+, C. Gaspar49
+, A. Gavrikov33
+, E. Gersabeck20
+,
+482
+M. Gersabeck20
+, T. Gershon57
+, S. Ghizzo29,m
+, Z. Ghorbanimoghaddam55
+, F.
+483
+I. Giasemis16,e
+, V. Gibson56
+, H.K. Giemza42
+, A.L. Gilman66
+, M. Giovannetti28
+,
+484
+A. Giovent`u47
+, L. Girardey63,58
+, M.A. Giza41
+, F.C. Glaser22,14
+, V.V. Gligorov16
+,
+485
+C. G¨obel70
+, L. Golinka-Bezshyyko88
+, E. Golobardes46
+, A. Golutvin62,49
+,
+486
+S. Gomez Fernandez45
+, W. Gomulka40
+, F. Goncalves Abrantes64
+, I. Gon¸cales Vaz49
+,
+487
+M. Goncerz41
+, G. Gong4,c
+, J. A. Gooding19
+, C. Gotti31
+, E. Govorkova65
+,
+488
+J.P. Grabowski30
+, L.A. Granado Cardoso49
+, R. Grande Quartieri2
+, E. Graug´es45
+,
+489
+E. Graverini35,50
+, L. Grazette57
+, G. Graziani27
+, A. T. Grecu43
+, N.A. Grieser66
+,
+490
+L. Grillo60
+, C. Gu15
+, M. Guarise26
+, L. Guerry11
+, A.-K. Guseinov50
+, Y. Guz6
+,
+491
+T. Gys49
+, K. Habermann18
+, T. Hadavizadeh1
+, C. Hadjivasiliou67
+, G. Haefeli50
+,
+492
+C. Haen49
+, S. Haken56
+, G. Hallett57
+, P.M. Hamilton67
+, Q. Han33
+, X. Han22,49
+,
+493
+S. Hansmann-Menzemer22
+, N. Harnew64
+, T. J. Harris1
+, L. Hartman50
+,
+494
+M. Hartmann14
+, S. Hashmi40
+, J. He7,d
+, N. Heatley14
+, A. Hedes63
+, F. Hemmer49
+,
+495
+C. Henderson66
+, R. Henderson14
+, R.D.L. Henderson1
+, A.M. Hennequin49
+,
+496
+K. Hennessy61
+, J. Herd62
+, P. Herrero Gascon22
+, J. Heuel17
+, A. Heyn13
+,
+497
+A. Hicheur3
+, G. Hijano Mendizabal51
+, J. Horswill63
+, R. Hou8
+, Y. Hou11
+,
+498
+D.C. Houston60
+, N. Howarth61
+, W. Hu7,d
+, X. Hu4
+, W. Hulsbergen38
+,
+499
+R.J. Hunter57
+, D. Hurley57, D. Hutchcroft61
+, M. Idzik40
+, P. Ilten66
+, A. Iohner10
+,
+500
+H. Jage17
+, S.J. Jaimes Elles77,48,49
+, S. Jakobsen49
+, T. Jakoubek78
+, E. Jans38
+,
+501
+A. Jawahery67
+, C. Jayaweera54
+, A. Jelavic1
+, V. Jevtic19
+, Z. Jia16
+, E. Jiang67
+,
+502
+X. Jiang5,7
+, Y. Jiang7
+, Y. J. Jiang6
+, E. Jimenez Moya9
+, N. Jindal91
+, M. John64
+,
+503
+A. John Rubesh Rajan23
+, D. Johnson54
+, C.R. Jones56
+, S. Joshi42
+, B. Jost49
+, J.
+504
+Juan Castella56
+, N. Jurik49
+, I. Juszczak41
+, K. Kalecinska40, D. Kaminaris50
+,
+505
+S. Kandybei52
+, M. Kane59
+, Y. Kang4,c
+, C. Kar11
+, M. Karacson49
+,
+506
+A. Kauniskangas50
+, J.W. Kautz66
+, M.K. Kazanecki41
+, F. Keizer49
+, M. Kenzie56
+,
+507
+T. Ketel38
+, B. Khanji69
+, S. Kholodenko62,49
+, G. Khreich14
+, F. Kiraz14, T. Kirn17
+,
+508
+V.S. Kirsebom31,o
+, N. Kleijne35,s
+, A. Kleimenova50
+, D. K. Klekots88
+,
+509
+21
+
+K. Klimaszewski42
+, M.R. Kmiec42
+, T. Knospe19
+, R. Kolb22
+, S. Koliiev53
+,
+510
+L. Kolk19
+, A. Konoplyannikov6
+, P. Kopciewicz49
+, P. Koppenburg38
+, A. Korchin52
+,
+511
+I. Kostiuk38
+, O. Kot53
+, S. Kotriakhova32
+, E. Kowalczyk67
+, O. Kravcov81
+,
+512
+M. Kreps57
+, W. Krupa49
+, W. Krzemien42
+, O. Kshyvanskyi53
+, S. Kubis86
+,
+513
+M. Kucharczyk41
+, A. Kupsc87,42
+, V. Kushnir52
+, B. Kutsenko13
+, J. Kvapil68
+, I.
+514
+Kyryllin52
+, D. Lacarrere49
+, P. Laguarta Gonzalez45
+, A. Lai32
+, A. Lampis32
+,
+515
+D. Lancierini62
+, C. Landesa Gomez47
+, J.J. Lane1
+, G. Lanfranchi28
+,
+516
+C. Langenbruch22
+, T. Latham57
+, F. Lazzari35,t
+, C. Lazzeroni54
+, R. Le Gac13
+, H.
+517
+Lee61
+, R. Lef`evre11
+, M. Lehuraux57
+, E. Lemos Cid49
+, O. Leroy13
+, T. Lesiak41
+, E.
+518
+D. Lesser68
+, B. Leverington22
+, A. Li4,c
+, C. Li4
+, C. Li13
+, H. Li73
+, J. Li8
+,
+519
+K. Li76
+, L. Li63
+, P. Li7
+, P.-R. Li74
+, Q. Li5,7
+, T. Li72
+, T. Li73
+, W. Li1
+,
+520
+Y. Li8
+, Y. Li5
+, Y. Li4
+, Z. Lian4,c
+, Q. Liang8, X. Liang69
+, Z. Liang32
+,
+521
+S. Libralon48
+, A. Lightbody12
+, T. Lin58
+, R. Lindner49
+, H. Linton62
+,
+522
+R. Litvinov66
+, D. Liu8
+, F. L. Liu1
+, G. Liu73
+, K. Liu74
+, S. Liu5
+, W. Liu8
+,
+523
+Y. Liu59
+, Y. Liu74
+, Y. L. Liu62
+, G. Loachamin Ordonez70
+, I. Lobo1
+,
+524
+A. Lobo Salvia10
+, A. Loi32
+, T. Long56
+, F. C. L. Lopes2,a
+, J.H. Lopes3
+,
+525
+A. Lopez Huertas45
+, C. Lopez Iribarnegaray47
+, Q. Lu15
+, C. Lucarelli49
+,
+526
+D. Lucchesi33,q
+, M. Lucio Martinez48
+, Y. Luo6
+, A. Lupato33,i
+, M. Lupberger20
+,
+527
+E. Luppi26,l
+, K. Lynch23
+, S. Lyu6, X.-R. Lyu7
+, H. Ma72
+, S. Maccolini49
+,
+528
+F. Machefert14
+, F. Maciuc43
+, B. Mack69
+, I. Mackay64
+, L. M. Mackey69
+,
+529
+L.R. Madhan Mohan56
+, M. J. Madurai54
+, D. Magdalinski38
+, J.J. Malczewski41
+,
+530
+S. Malde64
+, L. Malentacca49
+, G. Manca32,k
+, G. Mancinelli13
+, C. Mancuso14
+,
+531
+R. Manera Escalero45
+, A. Mangalasseri80
+, F. M. Manganella37
+, D. Manuzzi25
+, S.
+532
+Mao7
+, D. Marangotto30,n
+, J.F. Marchand10
+, R. Marchevski50
+, U. Marconi25
+,
+533
+E. Mariani16
+, S. Mariani49
+, C. Marin Benito45
+, J. Marks22
+, A.M. Marshall55
+, L.
+534
+Martel64
+, G. Martelli19
+, G. Martellotti36
+, L. Martinazzoli49
+, M. Martinelli31,o
+, C.
+535
+Martinez3
+, D. Martinez Gomez83
+, D. Martinez Santos44
+, F. Martinez Vidal48
+, A.
+536
+Martorell i Granollers46
+, A. Massafferri2
+, R. Matev49
+, A. Mathad49
+, C. Matteuzzi69
+,
+537
+K.R. Mattioli15
+, A. Mauri62
+, E. Maurice15
+, J. Mauricio45
+, P. Mayencourt50
+,
+538
+J. Mazorra de Cos48
+, M. Mazurek42
+, D. Mazzanti Tarancon45
+, M. McCann62
+,
+539
+N.T. McHugh60
+, A. McNab63
+, R. McNulty23
+, B. Meadows66
+, D. Melnychuk42
+,
+540
+D. Mendoza Granada16
+, P. Menendez Valdes Perez47
+, F. M. Meng4,c
+, M. Merk38,84
+,
+541
+A. Merli50,30
+, L. Meyer Garcia67
+, D. Miao5,7
+, H. Miao30
+, M. Mikhasenko79
+,
+542
+D.A. Milanes85
+, A. Minotti31,o
+, E. Minucci28
+, B. Mitreska63
+, D.S. Mitzel19
+, R.
+543
+Mocanu43
+, A. Modak58
+, L. Moeser19
+, R.D. Moise17
+, E. F. Molina Cardenas89
+,
+544
+T. Momb¨acher47
+, M. Monk56
+, T. Monnard50
+, S. Monteil11
+, A. Morcillo Gomez47
+,
+545
+G. Morello28
+, M.J. Morello35,s
+, M.P. Morgenthaler22
+, A. Moro31,o
+, J. Moron40
+, W.
+546
+Morren38
+, A.B. Morris81,49
+, A.G. Morris13
+, R. Mountain69
+, Z. Mu6
+, N.
+547
+Muangkod65
+, E. Muhammad57
+, F. Muheim59
+, M. Mulder19
+, K. M¨uller51
+,
+548
+F. Mu˜noz-Rojas9
+, R. Murta62
+, V. Mytrochenko52
+, P. Naik61
+, T. Nakada50
+,
+549
+R. Nandakumar58
+, G. Napoletano50
+, I. Nasteva3
+, M. Needham59
+, N. Neri30,n
+,
+550
+S. Neubert18
+, N. Neufeld49
+, J. Nicolini49
+, D. Nicotra84
+, E.M. Niel15
+, L. Nisi19
+,
+551
+Q. Niu74
+, B. K. Njoki49
+, P. Nogarolli3
+, P. Nogga18
+, C. Normand47
+,
+552
+J. Novoa Fernandez47
+, G. Nowak66
+, H. N. Nur60
+, A. Oblakowska-Mucha40
+,
+553
+T. Oeser17
+, O. Okhrimenko53
+, R. Oldeman32,k
+, F. Oliva59,49
+, E. Olivart Pino45
+,
+554
+M. Olocco19
+, R.H. O’Neil49
+, J.S. Ordonez Soto11
+, D. Osthues19
+,
+555
+J.M. Otalora Goicochea3
+, P. Owen51
+, A. Oyanguren48
+, O. Ozcelik49
+, F. Paciolla35,u
+,
+556
+A. Padee42
+, K.O. Padeken18
+, B. Pagare47
+, T. Pajero49
+, A. Palano24
+, L. Palini30
+,
+557
+M. Palutan28
+, C. Pan75
+, X. Pan4,c
+, S. Panebianco12
+, S. Paniskaki49
+,
+558
+L. Paolucci63
+, A. Papanestis58
+, M. Pappagallo24,h
+, L.L. Pappalardo26
+,
+559
+22
+
+C. Pappenheimer66
+, C. Parkes63
+, D. Parmar79
+, G. Passaleva27
+, D. Passaro35,s
+,
+560
+A. Pastore24
+, M. Patel62
+, J. Patoc64
+, C. Patrignani25,j
+, A. Paul69
+,
+561
+C.J. Pawley84
+, A. Pellegrino38
+, J. Peng5,7
+, X. Peng74, M. Pepe Altarelli28
+,
+562
+S. Perazzini25
+, H. Pereira Da Costa68
+, M. Pereira Martinez47
+, A. Pereiro Castro47
+,
+563
+C. Perez46
+, P. Perret11
+, A. Perrevoort83
+, A. Perro49
+, M.J. Peters66
+,
+564
+K. Petridis55
+, A. Petrolini29,m
+, S. Pezzulo29,m
+, J. P. Pfaller66
+, H. Pham69
+,
+565
+L. Pica35,s
+, M. Piccini34
+, L. Piccolo32
+, B. Pietrzyk10
+, R. N. Pilato61
+, D. Pinci36
+,
+566
+F. Pisani49
+, M. Pizzichemi31,o,49
+, V. M. Placinta43
+, M. Plo Casasus47
+, T. Poeschl49
+,
+567
+F. Polci16
+, M. Poli Lener28
+, A. Poluektov13
+, I. Polyakov63
+, E. Polycarpo3
+,
+568
+S. Ponce49
+, D. Popov7,49
+, K. Popp19
+, K. Prasanth59
+, C. Prouve44
+,
+569
+D. Provenzano32,k,49
+, V. Pugatch53
+, A. Puicercus Gomez49
+, G. Punzi35,t
+,
+570
+J.R. Pybus68
+, Q. Qian6
+, W. Qian7
+, N. Qin4,c
+, R. Quagliani49
+,
+571
+R.I. Rabadan Trejo57
+, B. Rachwal40
+, R. Racz81
+, J.H. Rademacker55
+, M. Rama35
+,
+572
+M. Ram´ırez Garc´ıa89
+, V. Ramos De Oliveira70
+, M. Ramos Pernas49
+, M.S. Rangel3
+,
+573
+G. Raven39
+, M. Rebollo De Miguel48
+, F. Redi30,i
+, J. Reich55
+, F. Reiss20
+, Z. Ren7
+,
+574
+P.K. Resmi64
+, M. Ribalda Galvez45
+, R. Ribatti50
+, G. Ricart12
+, D. Riccardi35,s
+,
+575
+S. Ricciardi58
+, K. Richardson65
+, M. Richardson-Slipper56
+, F. Riehn19
+,
+576
+K. Rinnert61
+, P. Robbe14,49
+, G. Robertson60
+, E. Rodrigues61
+,
+577
+A. Rodriguez Alvarez45
+, E. Rodriguez Fernandez47
+, J.A. Rodriguez Lopez77
+,
+578
+E. Rodriguez Rodriguez49
+, J. Roensch19
+, A. Rogovskiy58
+, D.L. Rolf19
+, P. Roloff49
+,
+579
+V. Romanovskiy66
+, A. Romero Vidal47
+, G. Romolini26,49
+, F. Ronchetti50
+, T. Rong6
+,
+580
+M. Rotondo28
+, M.S. Rudolph69
+, M. Ruiz Diaz22
+, J. Ruiz Vidal84
+, J.
+581
+J. Saavedra-Arias9
+, J.J. Saborido Silva47
+, S. E. R. Sacha Emile R.49
+, D. Sahoo80
+,
+582
+N. Sahoo54
+, B. Saitta32
+, M. Salomoni31,49,o
+, I. Sanderswood48
+, R. Santacesaria36
+,
+583
+C. Santamarina Rios47
+, M. Santimaria28
+, L. Santoro 2
+, E. Santovetti37
+,
+584
+A. Saputi26,49
+, A. Sarnatskiy83
+, G. Sarpis49
+, M. Sarpis81
+, C. Satriano36
+,
+585
+A. Satta37
+, M. Saur74
+, H. Sazak17
+, F. Sborzacchi49,28
+, A. Scarabotto19
+,
+586
+S. Schael17
+, S. Scherl61
+, M. Schiller22
+, H. Schindler49
+, M. Schmelling21
+,
+587
+B. Schmidt49
+, N. Schmidt68
+, S. Schmitt65
+, H. Schmitz18, O. Schneider50
+,
+588
+A. Schopper62
+, N. Schulte19
+, M.H. Schune14
+, G. Schwering17
+, B. Sciascia28
+,
+589
+A. Sciuccati49
+, G. Scriven84
+, I. Segal79
+, S. Sellam47
+, M. Senghi Soares39
+,
+590
+A. Sergi29,m
+, N. Serra51
+, L. Sestini27
+, B. Sevilla Sanjuan46
+, Y. Shang6
+,
+591
+D.M. Shangase89
+, R. S. Sharma69
+, L. Shchutska50
+, T. Shears61
+, J. Shen6,
+592
+Z. Shen38
+, S. Sheng50
+, B. Shi7
+, J. Shi56
+, Q. Shi7
+, W. S. Shi73
+, E. Shmanin25
+,
+593
+R. Silva Coutinho2
+, G. Simi33,q
+, S. Simone24,h
+, M. Singha80
+, I. Siral50
+,
+594
+N. Skidmore57
+, T. Skwarnicki69
+, M.W. Slater54
+, E. Smith65
+, M. Smith62
+,
+595
+L. Soares Lavra59
+, M.D. Sokoloff66
+, F.J.P. Soler60
+, A. Solomin55
+, K. Solovieva20
+, N.
+596
+S. Sommerfeld18
+, R. Song1
+, Y. Song50
+, Y. Song4,c
+, Y. S. Song6
+,
+597
+F.L. Souza De Almeida45
+, B. Souza De Paula3
+, K.M. Sowa40
+, E. Spadaro Norella29,m
+,
+598
+E. Spedicato25
+, J.G. Speer19
+, P. Spradlin60
+, F. Stagni49
+, M. Stahl79
+, S. Stahl49
+,
+599
+S. Stanislaus64
+, M. Stefaniak91
+, O. Steinkamp51
+, F. Suljik64
+, J. Sun63
+, L. Sun75
+,
+600
+M. Sun6, D. Sundfeld2
+, W. Sutcliffe51
+, P. Svihra78
+, V. Svintozelskyi48
+,
+601
+K. Swientek40
+, F. Swystun56
+, A. Szabelski42
+, T. Szumlak40
+, Y. Tan7
+, Y. Tang75
+,
+602
+Y. T. Tang7
+, M.D. Tat22
+, J. A. Teijeiro Jimenez47
+, F. Terzuoli35,u
+, F. Teubert49
+,
+603
+E. Thomas49
+, D.J.D. Thompson54
+, A. R. Thomson-Strong59
+, H. Tilquin62
+,
+604
+V. Tisserand11
+, S. T’Jampens10
+, M. Tobin5,49
+, T. T. Todorov20
+, L. Tomassetti26,l
+,
+605
+G. Tonani30
+, X. Tong6
+, T. Tork30
+, L. Toscano19
+, D.Y. Tou4,c
+, C. Trippl46
+,
+606
+G. Tuci22
+, N. Tuning38
+, L.H. Uecker22
+, A. Ukleja40
+, A. Upadhyay49
+, B.
+607
+Urbach59
+, A. Usachov38
+, U. Uwer22
+, V. Vagnoni25,49
+, A. Vaitkevicius81
+, V.
+608
+Valcarce Cadenas47
+, G. Valenti25
+, N. Valls Canudas49
+, J. van Eldik49
+,
+609
+23
+
+H. Van Hecke68
+, E. van Herwijnen62
+, C.B. Van Hulse47,w
+, R. Van Laak50
+,
+610
+M. van Veghel84
+, G. Vasquez51
+, R. Vazquez Gomez45
+, P. Vazquez Regueiro47
+,
+611
+C. V´azquez Sierra44
+, S. Vecchi26
+, J. Velilla Serna48
+, J.J. Velthuis55
+, M. Veltri27,v
+,
+612
+A. Venkateswaran50
+, M. Verdoglia32
+, M. Vesterinen57
+, W. Vetens69
+, D.
+613
+Vico Benet64
+, P. Vidrier Villalba45
+, M. Vieites Diaz47
+, X. Vilasis-Cardona46
+,
+614
+E. Vilella Figueras61
+, A. Villa50
+, P. Vincent16
+, B. Vivacqua3
+, F.C. Volle54
+,
+615
+D. vom Bruch13
+, K. Vos84
+, C. Vrahas59
+, J. Wagner19
+, J. Walsh35
+, N. Walter49,
+616
+E.J. Walton1
+, G. Wan6
+, A. Wang7
+, B. Wang5
+, C. Wang22
+, G. Wang8
+,
+617
+H. Wang74
+, J. Wang7
+, J. Wang5
+, J. Wang4,c
+, J. Wang75
+, M. Wang49
+, N. W.
+618
+Wang7
+, R. Wang55
+, X. Wang8
+, X. Wang73
+, X. Wang4
+, X. W. Wang62
+,
+619
+Y. Wang76
+, Y. Wang6
+, Y. H. Wang74
+, Z. Wang14
+, Z. Wang30
+, J.A. Ward57,1
+,
+620
+M. Waterlaat49
+, N.K. Watson54
+, D. Websdale62
+, Y. Wei6
+, Z. Weida7
+,
+621
+J. Wendel44
+, B.D.C. Westhenry55
+, C. White56
+, M. Whitehead60
+, E. Whiter54
+,
+622
+A.R. Wiederhold63
+, D. Wiedner19
+, M. A. Wiegertjes38
+, C. Wild64
+, G. Wilkinson64
+,
+623
+M.K. Wilkinson66
+, M. Williams65
+, M. J. Williams49
+, M.R.J. Williams59
+,
+624
+R. Williams56
+, S. Williams55
+, Z. Williams55
+, F.F. Wilson58
+, M. Winn12
+,
+625
+W. Wislicki42
+, M. Witek41
+, L. Witola19
+, T. Wolf22
+, E. Wood56
+, G. Wormser14
+,
+626
+S.A. Wotton56
+, H. Wu69
+, J. Wu8
+, X. Wu75
+, Y. Wu6,56
+, Z. Wu7
+, K. Wyllie49
+,
+627
+S. Xian73
+, Z. Xiang5
+, Y. Xie8
+, T. X. Xing30
+, A. Xu35,s
+, L. Xu4,c
+, M. Xu49
+, R.
+628
+Xu89, Z. Xu49
+, Z. Xu92
+, Z. Xu7
+, Z. Xu5
+, S. Yadav26
+, K. Yang62
+, X. Yang6
+,
+629
+Y. Yang7
+, Y. Yang80
+, Z. Yang6
+, Z. Yang4
+, H. Yeung63
+, H. Yin8
+, X. Yin7
+, C.
+630
+Y. Yu6
+, J. Yu72
+, X. Yuan5
+, Y Yuan5,7
+, J. A. Zamora Saa71
+, M. Zavertyaev21
+,
+631
+M. Zdybal41
+, F. Zenesini25
+, C. Zeng5,7
+, M. Zeng4,c
+, S.H Zeng55
+, C. Zhang6
+, C.
+632
+Zhang61, D. Zhang8
+, J. Zhang42
+, L. Zhang4,c
+, R. Zhang8
+, S. Zhang64
+, S. L.
+633
+Zhang72
+, Y. Zhang6
+, Z. Zhang4,c
+, J. Zhao7
+, Y. Zhao22
+, A. Zhelezov22
+, S. Z.
+634
+Zheng6
+, X. Z. Zheng4,c
+, Y. Zheng7
+, T. Zhou41
+, X. Zhou8
+, V. Zhovkovska57
+, L. Z.
+635
+Zhu59
+, X. Zhu4,c
+, X. Zhu8
+, Y. Zhu17
+, V. Zhukov17
+, J. Zhuo48
+, D. Zuliani33,q
+,
+636
+G. Zunica28
+.
+637
+1School of Physics and Astronomy, Monash University, Melbourne, Australia
+638
+2Centro Brasileiro de Pesquisas F´ısicas (CBPF), Rio de Janeiro, Brazil
+639
+3Universidade Federal do Rio de Janeiro (UFRJ), Rio de Janeiro, Brazil
+640
+4Department of Engineering Physics, Tsinghua University, Beijing, China
+641
+5Institute Of High Energy Physics (IHEP), Beijing, China
+642
+6School of Physics State Key Laboratory of Nuclear Physics and Technology, Peking University, Beijing,
+643
+China
+644
+7University of Chinese Academy of Sciences, Beijing, China
+645
+8Institute of Particle Physics, Central China Normal University, Wuhan, Hubei, China
+646
+9Consejo Nacional de Rectores (CONARE), San Jose, Costa Rica
+647
+10Universit´e Savoie Mont Blanc, CNRS, IN2P3-LAPP, Annecy, France
+648
+11Universit´e Clermont Auvergne, CNRS/IN2P3, LPC, Clermont-Ferrand, France
+649
+12Universit´e Paris-Saclay, Centre d’Etudes de Saclay (CEA), IRFU, Gif-Sur-Yvette, France
+650
+13Aix Marseille Univ, CNRS/IN2P3, CPPM, Marseille, France
+651
+14Universit´e Paris-Saclay, CNRS/IN2P3, IJCLab, Orsay, France
+652
+15Laboratoire Leprince-Ringuet, CNRS/IN2P3, Ecole Polytechnique, Institut Polytechnique de Paris,
+653
+Palaiseau, France
+654
+16Laboratoire de Physique Nucl´eaire et de Hautes ´Energies (LPNHE), Sorbonne Universit´e,
+655
+CNRS/IN2P3, Paris, France
+656
+17I. Physikalisches Institut, RWTH Aachen University, Aachen, Germany
+657
+18Universit¨at Bonn - Helmholtz-Institut f¨ur Strahlen und Kernphysik, Bonn, Germany
+658
+19Fakult¨at Physik, Technische Universit¨at Dortmund, Dortmund, Germany
+659
+20Physikalisches Institut, Albert-Ludwigs-Universit¨at Freiburg, Freiburg, Germany
+660
+21Max-Planck-Institut f¨ur Kernphysik (MPIK), Heidelberg, Germany
+661
+24
+
+22Physikalisches Institut, Ruprecht-Karls-Universit¨at Heidelberg, Heidelberg, Germany
+662
+23School of Physics, University College Dublin, Dublin, Ireland
+663
+24INFN Sezione di Bari, Bari, Italy
+664
+25INFN Sezione di Bologna, Bologna, Italy
+665
+26INFN Sezione di Ferrara, Ferrara, Italy
+666
+27INFN Sezione di Firenze, Firenze, Italy
+667
+28INFN Laboratori Nazionali di Frascati, Frascati, Italy
+668
+29INFN Sezione di Genova, Genova, Italy
+669
+30INFN Sezione di Milano, Milano, Italy
+670
+31INFN Sezione di Milano-Bicocca, Milano, Italy
+671
+32INFN Sezione di Cagliari, Monserrato, Italy
+672
+33INFN Sezione di Padova, Padova, Italy
+673
+34INFN Sezione di Perugia, Perugia, Italy
+674
+35INFN Sezione di Pisa, Pisa, Italy
+675
+36INFN Sezione di Roma La Sapienza, Roma, Italy
+676
+37INFN Sezione di Roma Tor Vergata, Roma, Italy
+677
+38Nikhef National Institute for Subatomic Physics, Amsterdam, Netherlands
+678
+39Nikhef National Institute for Subatomic Physics and VU University Amsterdam, Amsterdam,
+679
+Netherlands
+680
+40AGH - University of Krakow, Faculty of Physics and Applied Computer Science, Krak´ow, Poland
+681
+41Henryk Niewodniczanski Institute of Nuclear Physics Polish Academy of Sciences, Krak´ow, Poland
+682
+42National Center for Nuclear Research (NCBJ), Warsaw, Poland
+683
+43Horia Hulubei National Institute of Physics and Nuclear Engineering, Bucharest-Magurele, Romania
+684
+44Universidade da Coru˜na, A Coru˜na, Spain
+685
+45ICCUB, Universitat de Barcelona, Barcelona, Spain
+686
+46La Salle, Universitat Ramon Llull, Barcelona, Spain
+687
+47Instituto Galego de F´ısica de Altas Enerx´ıas (IGFAE), Universidade de Santiago de Compostela,
+688
+Santiago de Compostela, Spain
+689
+48Instituto de Fisica Corpuscular, Centro Mixto Universidad de Valencia - CSIC, Valencia, Spain
+690
+49European Organization for Nuclear Research (CERN), Geneva, Switzerland
+691
+50Institute of Physics, Ecole Polytechnique F´ed´erale de Lausanne (EPFL), Lausanne, Switzerland
+692
+51Physik-Institut, Universit¨at Z¨urich, Z¨urich, Switzerland
+693
+52NSC Kharkiv Institute of Physics and Technology (NSC KIPT), Kharkiv, Ukraine
+694
+53Institute for Nuclear Research of the National Academy of Sciences (KINR), Kyiv, Ukraine
+695
+54School of Physics and Astronomy, University of Birmingham, Birmingham, United Kingdom
+696
+55H.H. Wills Physics Laboratory, University of Bristol, Bristol, United Kingdom
+697
+56Cavendish Laboratory, University of Cambridge, Cambridge, United Kingdom
+698
+57Department of Physics, University of Warwick, Coventry, United Kingdom
+699
+58STFC Rutherford Appleton Laboratory, Didcot, United Kingdom
+700
+59School of Physics and Astronomy, University of Edinburgh, Edinburgh, United Kingdom
+701
+60School of Physics and Astronomy, University of Glasgow, Glasgow, United Kingdom
+702
+61Oliver Lodge Laboratory, University of Liverpool, Liverpool, United Kingdom
+703
+62Imperial College London, London, United Kingdom
+704
+63Department of Physics and Astronomy, University of Manchester, Manchester, United Kingdom
+705
+64Department of Physics, University of Oxford, Oxford, United Kingdom
+706
+65Massachusetts Institute of Technology, Cambridge, MA, United States
+707
+66University of Cincinnati, Cincinnati, OH, United States
+708
+67University of Maryland, College Park, MD, United States
+709
+68Los Alamos National Laboratory (LANL), Los Alamos, NM, United States
+710
+69Syracuse University, Syracuse, NY, United States
+711
+70Pontif´ıcia Universidade Cat´olica do Rio de Janeiro (PUC-Rio), Rio de Janeiro, Brazil, associated to 3
+712
+71Universidad Andres Bello, Santiago, Chile, associated to 51
+713
+72School of Physics and Electronics, Hunan University, Changsha City, China, associated to 8
+714
+73State Key Laboratory of Nuclear Physics and Technology, South China Normal University, Guangzhou,
+715
+China, associated to 4
+716
+74Lanzhou University, Lanzhou, China, associated to 5
+717
+25
+
+75School of Physics and Technology, Wuhan University, Wuhan, China, associated to 4
+718
+76Henan Normal University, Xinxiang, China, associated to 8
+719
+77Departamento de Fisica , Universidad Nacional de Colombia, Bogota, Colombia, associated to 16
+720
+78Institute of Physics of the Czech Academy of Sciences, Prague, Czech Republic, associated to 63
+721
+79Ruhr Universitaet Bochum, Fakultaet f. Physik und Astronomie, Bochum, Germany, associated to 19
+722
+80Eotvos Lorand University, Budapest, Hungary, associated to 49
+723
+81Faculty of Physics, Vilnius University, Vilnius, Lithuania, associated to 20
+724
+82Institute of Physics and Technology, Ulan Bator, Mongolia, associated to 5
+725
+83Van Swinderen Institute, University of Groningen, Groningen, Netherlands, associated to 38
+726
+84Universiteit Maastricht, Maastricht, Netherlands, associated to 38
+727
+85Universidad de Ingenier´ıa y Tecnolog´ıa (UTEC), Lima, Peru, associated to 65
+728
+86Tadeusz Kosciuszko Cracow University of Technology, Cracow, Poland, associated to 41
+729
+87Department of Physics and Astronomy, Uppsala University, Uppsala, Sweden, associated to 60
+730
+88Taras Schevchenko University of Kyiv, Faculty of Physics, Kyiv, Ukraine, associated to 14
+731
+89University of Michigan, Ann Arbor, MI, United States, associated to 69
+732
+90Indiana University, Bloomington, United States, associated to 68
+733
+91Ohio State University, Columbus, United States, associated to 68
+734
+92Kent State University Physics Department, Kent, United States, associated to 68
+735
+aUniversidade Estadual de Campinas (UNICAMP), Campinas, Brazil
+736
+bDepartment of Physics and Astronomy, University of Victoria, Victoria, Canada
+737
+cCenter for High Energy Physics, Tsinghua University, Beijing, China
+738
+dHangzhou Institute for Advanced Study, UCAS, Hangzhou, China
+739
+eLIP6, Sorbonne Universit´e, Paris, France
+740
+fLamarr Institute for Machine Learning and Artificial Intelligence, Dortmund, Germany
+741
+gUniversidad Nacional Aut´onoma de Honduras, Tegucigalpa, Honduras
+742
+hUniversit`a di Bari, Bari, Italy
+743
+iUniversit`a di Bergamo, Bergamo, Italy
+744
+jUniversit`a di Bologna, Bologna, Italy
+745
+kUniversit`a di Cagliari, Cagliari, Italy
+746
+lUniversit`a di Ferrara, Ferrara, Italy
+747
+mUniversit`a di Genova, Genova, Italy
+748
+nUniversit`a degli Studi di Milano, Milano, Italy
+749
+oUniversit`a degli Studi di Milano-Bicocca, Milano, Italy
+750
+pUniversit`a di Modena e Reggio Emilia, Modena, Italy
+751
+qUniversit`a di Padova, Padova, Italy
+752
+rUniversit`a di Perugia, Perugia, Italy
+753
+sScuola Normale Superiore, Pisa, Italy
+754
+tUniversit`a di Pisa, Pisa, Italy
+755
+uUniversit`a di Siena, Siena, Italy
+756
+vUniversit`a di Urbino, Urbino, Italy
+757
+wUniversidad de Alcal´a, Alcal´a de Henares , Spain
+758
+†Deceased
+759
+26
