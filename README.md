@@ -13,6 +13,20 @@ Installable toolkit for local RAG indexing + MCP serving in scientific workflows
 
 ## Installation
 
+### From PyPI (recommended for end users)
+
+Project page: [rag-ai-scientist on PyPI](https://pypi.org/project/rag-ai-scientist/0.1.0/)
+
+```bash
+python -m pip install rag-ai-scientist==0.1.0
+```
+
+Or install the latest published release:
+
+```bash
+python -m pip install rag-ai-scientist
+```
+
 ### From source (recommended while developing)
 
 ```bash
