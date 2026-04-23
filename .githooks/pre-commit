@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Block committing dev-only specs docs from non-dev branches.
+bash scripts/check_dev_specs_branch.sh --staged

@@ -30,3 +30,27 @@ bash .cursor/setup_rag.sh
 - Validate local indexing when touching RAG/MCP files:
   - `python .cursor/index_documents.py --force`
   - `python .cursor/visualize_rag.py --top-n 200`
+
+## Dev-only specs guard
+
+The following files are intended to live on `dev` only:
+
+- `docs/AGENT_SPECSLIST_DEV.md`
+- `docs/demos/`
+
+Enable the local pre-commit hook:
+
+```bash
+git config core.hooksPath .githooks
+chmod +x .githooks/pre-commit scripts/check_dev_specs_branch.sh
+```
+
+Manual checks:
+
+```bash
+# Validate what is staged for commit
+bash scripts/check_dev_specs_branch.sh --staged
+
+# Validate current branch HEAD content
+bash scripts/check_dev_specs_branch.sh
+```
