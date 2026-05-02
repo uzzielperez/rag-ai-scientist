@@ -2,15 +2,19 @@
 
 Use this document to manage default and user-supplied references.
 
-## Seeded references
+## Seeded references (this repository)
 
-By default, `configs/references.example.yaml` includes:
+By default, `configs/references.example.yaml` indexes paths **relative to `configs/`**:
 
-- `lb02lbgammabr/README.md`
-- `lb02lbgammabr/docs/HACKATHON_TASK_BOARD.md`
-- `lb02lbgammabr/docs/rag_system_paper.tex`
-- `lb02lbgammabr/data/README.md`
-- `lb02lbgammabr/data/samplelist.py`
+- `../README.md`
+- `../docs` (including **`docs/examples/`** — see [examples README](examples/README.md))
+- `../papers` (if present)
+- `../scripts` and `../rag` as code sources
+- optional `~/public/my_references` for local PDFs and notes
+
+Example narrative indexed from `docs/examples/`:
+
+- **`docs/examples/cms_higgs_opendata_physics_story.md`** — CMS Run-1 Higgs open-data physics story and **`pip install`** usage notes (pair with packaged skill **`cms-higgs-opendata`**).
 
 ## Bring your own references
 

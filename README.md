@@ -187,20 +187,20 @@ This gives deterministic execution and avoids accidental environment drift.
 rag_ai_scientist/
   cli.py                  # Installable CLI entrypoint
   mcp_server.py           # MCP server implementation
-  skills/                 # Packaged reusable skills
+  skills/                 # Packaged reusable skills (e.g. cms-higgs-opendata)
 rag/
   index_documents.py      # Indexing backend used by setup-rag
 configs/
   references.example.yaml # Example indexing config
+docs/
+  examples/               # RAG-friendly example notes (CMS Higgs open data, …)
 ```
+
+Indexed examples and pointers: [`docs/examples/README.md`](docs/examples/README.md).
 
 ## Development
 
-```bash
-python -m pip install -e .
-python -m pip install build
-python -m build
-```
+Contributor workflow, editable installs, and **PyPI release steps** are documented in [`DEV_README.md`](./DEV_README.md).
 
 ## License
 

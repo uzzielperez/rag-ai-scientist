@@ -46,3 +46,4 @@ In Cursor, call one of:
 
 - The current backend is Chroma + Hugging Face embeddings.
 - Collection name is configurable via `configs/references.yaml` (`indexing.collection_name`).
+- Example markdown meant for retrieval (including the CMS Higgs open-data narrative) lives under **`docs/examples/`**; ensure `../docs` remains listed under `sources` when you customize `references.yaml`.

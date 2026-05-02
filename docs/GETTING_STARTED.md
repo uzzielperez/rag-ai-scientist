@@ -35,6 +35,7 @@ Then edit:
 
 - `configs/datasets.yaml` to point to your own data.
 - `configs/references.yaml` to include your papers/notes/code references.
+- If you keep this checkout intact, **`docs/examples/`** remains indexed via `../docs` (see **`docs/examples/README.md`** for the CMS Higgs open-data narrative and pip-install notes).
 
 ## 5) Build the RAG vector database
 

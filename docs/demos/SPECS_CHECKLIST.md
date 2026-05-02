@@ -76,7 +76,7 @@ Use this checklist for every agent task derived from `docs/AGENT_SPECSLIST_DEV.m
 ## 10) Demo Profile (pick one)
 
 - [ ] AutoResearch-style literature map
-- [ ] Higgs Open Dataset baseline
+- [ ] Higgs Open Dataset baseline (`docs/examples/cms_higgs_opendata_physics_story.md`, skill `cms-higgs-opendata`)
 - [ ] Mini-AlphaFold toy workflow
 - [ ] LHC tracking benchmark
 - [ ] other approved demo (name: ____________________)

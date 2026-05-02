@@ -89,6 +89,7 @@ This document defines a practical, implementation-oriented specslist for agents 
    - Goal: reproduce a baseline signal-vs-background model with transparent preprocessing.
    - Metrics: ROC AUC, calibration, training stability across seeds.
    - Deliverables: notebook/script, config snapshot, reproducibility report.
+   - RAG story + pip workflow: `docs/examples/cms_higgs_opendata_physics_story.md`; packaged skill **`cms-higgs-opendata`**.
 
 3. **Mini-AlphaFold workflow demo**
    - Goal: run a simplified structure-prediction style pipeline (toy-scale).
