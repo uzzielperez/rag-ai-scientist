@@ -7,208 +7,154 @@ Installable toolkit for local RAG indexing + MCP serving in scientific workflows
 [![License](https://img.shields.io/badge/license-AGPL--3.0--or--later-green)](./LICENSE)
 
 `rag-ai-scientist` gives you:
-- a CLI to initialize and build a local vector database from your references,
-- an MCP server entrypoint for Cursor/agent integrations,
-- packaged reusable skills under `rag_ai_scientist/skills/`.
+
+- a CLI to initialize and build a **local vector database** from **your** papers and notes,
+- an MCP server entrypoint for Cursor / agent integrations,
+- **packaged skills** under `rag_ai_scientist/skills/` (workflow checklists—no Git clone needed).
+
+---
+
+## End-user workflow (pip only — **no GitHub**)
+
+You install from PyPI, create **any folder** for your project, put your research materials there, index once, then connect Cursor.
+
+**Full step-by-step:** **[docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)** — install → `references/` → `init-references` → `setup-rag` → MCP → update notes and rebuild.
+
+Minimal command sequence (after `pip install rag-ai-scientist`):
+
+```bash
+mkdir -p ~/my-ai-scientist/references
+cd ~/my-ai-scientist
+# Add your own .md / .pdf files under references/
+
+rag-ai-scientist init-references --project-root . --references-dir ./references
+rag-ai-scientist setup-rag --project-root . --force
+rag-ai-scientist mcp --project-root .    # usually configured once inside Cursor — see GETTING_STARTED
+```
+
+- **`query_analysis_knowledge`** answers from **your indexed files**.
+- **`get_skill`** loads packaged skills (e.g. **`cms-higgs-opendata`**) **without** indexing anything extra.
+
+You update your AI scientist by editing files under **`references/`** (and **`configs/references.yaml`** if paths change), then **`setup-rag --force`** again.
+
+---
 
 ## Installation
 
-### From PyPI (recommended for end users)
-
-Project page: [rag-ai-scientist on PyPI](https://pypi.org/project/rag-ai-scientist/0.1.0/)
-
-```bash
-python -m pip install rag-ai-scientist==0.1.0
-```
-
-Or install the latest published release:
+### From PyPI (recommended)
 
 ```bash
 python -m pip install rag-ai-scientist
 ```
 
-### From source (recommended while developing)
+Pinned example:
 
 ```bash
-uv venv .venv
-source .venv/bin/activate
-uv pip install -e .
+python -m pip install rag-ai-scientist==0.1.2
 ```
 
-If `uv` is not available, fallback to:
+PyPI: [rag-ai-scientist](https://pypi.org/project/rag-ai-scientist/)
+
+### Verify
 
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install --upgrade pip
-python -m pip install -e .
-```
-
-Recommended isolation: keep this in a dedicated environment (for example
-`venvs/rag-ai-scientist`) rather than reusing analysis environments such as
-`ecalgnn311`.
-
-### Verify install
-
-```bash
-python -m pip show rag-ai-scientist
 rag-ai-scientist --help
 python -c "import rag_ai_scientist; print(rag_ai_scientist.__version__)"
 ```
 
-## Quickstart
-
-1) Initialize `configs/references.yaml` for your analysis repo:
+### From source (maintainers / contributors only)
 
 ```bash
-rag-ai-scientist init-references \
-  --project-root . \
-  --references-dir /path/to/references
+git clone <your fork or upstream URL>
+cd rag-ai-scientist-installable   # or package repo name
+python3 -m venv .venv && source .venv/bin/activate
+python -m pip install -e .
 ```
 
-2) Build the local RAG database:
+Isolation tip: use a dedicated venv (e.g. `~/venvs/rag-ai-scientist`) instead of mixing with heavy analysis stacks.
 
-```bash
-rag-ai-scientist setup-rag --project-root . --force
-```
+---
 
-3) Start the MCP server:
+## CLI commands
 
-```bash
-rag-ai-scientist mcp --project-root .
-```
+| Command | Purpose |
+|---------|---------|
+| **`init-references`** | Writes **`configs/references.yaml`** pointing at your references directory. |
+| **`setup-rag`** | Indexes sources into **`.cursor/rag_db`**. |
+| **`mcp`** | Starts the stdio MCP server — point **`--project-root`** at the same folder you indexed. |
 
-## CLI Commands
+Common flags: **`--project-root`**, **`--force`** (rebuild index), **`--references-dir`** (with `init-references`).
 
-### `init-references`
-Creates `configs/references.yaml` with source paths, chunking, and doc-type rules.
+---
 
-Useful options:
-- `--references-dir` path containing `.pdf/.md/.txt/.tex/.py/.rst`
-- `--collection-name` default: `rag-ai-scientist`
-- `--chunk-size`, `--chunk-overlap`
-- `--scientific-chunk-size`, `--scientific-chunk-overlap`
-- `--force` overwrite existing config
+## Cursor MCP configuration
 
-### `setup-rag`
-Indexes references and writes ChromaDB to `.cursor/rag_db`.
-
-Useful options:
-- `--force` rebuild from scratch
-- `--collection-name` override config collection
-- `--chunk-size`, `--chunk-overlap` runtime overrides
-
-### `mcp`
-Starts the stdio MCP server for Cursor or compatible MCP clients.
-
-## Cursor MCP Configuration
-
-Example `~/.cursor/mcp.json` entry:
+Register the server so Cursor runs it with **your** project path:
 
 ```json
 {
   "mcpServers": {
     "rag-ai-scientist": {
       "command": "rag-ai-scientist",
-      "args": ["mcp", "--project-root", "/absolute/path/to/analysis-repo"]
+      "args": ["mcp", "--project-root", "/absolute/path/to/my-ai-scientist"]
     }
   }
 }
 ```
 
-## Running Agents With Separate Training Environments
+See **[docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)** for optional **`.cursor/.env`** (LLM keys).
 
-If agents should run training/inference scripts and update configs, use two
-environments in parallel:
+---
 
-- `rag-ai-scientist` environment: runs MCP server and agent logic.
-- analysis/training environment: runs model training and inference commands.
+## Packaged skills and examples
 
-This avoids dependency conflicts while still letting agents orchestrate the full
-workflow for another repository.
+- Skills ship **inside the installed package**. Access via MCP **`get_skill`** (e.g. **`cms-higgs-opendata`**). No clone required.
+- **[docs/examples/README.md](docs/examples/README.md)** explains **`get_skill`**, Cursor wiring, and optional curated markdown **for maintainers** who ship a full docs tree. End users normally only need their own files under **`references/`**.
 
-### Recommended architecture
+---
 
-1) Keep a dedicated environment for `rag-ai-scientist`:
+## Running agents beside a separate lab environment
 
-```bash
-cd /path/to/rag-ai-scientist-installable
-uv venv .venv
-source .venv/bin/activate
-uv pip install -e .
-```
+If training runs use a different conda/venv than `rag-ai-scientist`:
 
-2) Keep your analysis repository and its own environment separate:
+1. Install **`rag-ai-scientist`** in its own small venv.
+2. Keep **`--project-root`** pointed at your research folder.
+3. Run heavy jobs via explicit wrappers (`conda run`, scripts) from the agent — see **[docs/RUNBOOK.md](docs/RUNBOOK.md)** if present for patterns.
 
-- repo: `/path/to/analysis-repo`
-- env: `/path/to/analysis-env` (conda or venv)
+---
 
-3) Start MCP from the `rag-ai-scientist` environment, but point it to the
-analysis repo:
-
-```bash
-rag-ai-scientist mcp --project-root /path/to/analysis-repo
-```
-
-4) Let agents launch analysis commands explicitly inside the analysis
-environment (for example via `conda run -p`), instead of relying on ambient
-shell state.
-
-### Safe command wrapper for agent execution
-
-Create a wrapper script in the analysis repo (example:
-`/path/to/analysis-repo/scripts/run_training.sh`) and let agents call only this
-script:
-
-```bash
-#!/usr/bin/env bash
-set -euo pipefail
-
-ANALYSIS_ENV="/path/to/analysis-env"
-ANALYSIS_REPO="/path/to/analysis-repo"
-
-cd "$ANALYSIS_REPO"
-exec conda run -p "$ANALYSIS_ENV" python scripts/train.py "$@"
-```
-
-This gives deterministic execution and avoids accidental environment drift.
-
-### Guardrails for autonomous edits and runs
-
-- Restrict editable files to a whitelist (for example `configs/**/*.yaml`).
-- Keep one output directory per run (`runs/<timestamp>_<tag>`).
-- Save the exact config snapshot and command used for each run.
-- Use a lock file to prevent concurrent training launches.
-- Require human approval before expensive or long GPU jobs.
-
-## Package Layout
+## Repository layout (when developing from source)
 
 ```text
 rag_ai_scientist/
-  cli.py                  # Installable CLI entrypoint
-  mcp_server.py           # MCP server implementation
-  skills/                 # Packaged reusable skills (e.g. cms-higgs-opendata)
+  cli.py                  # CLI entrypoint
+  mcp_server.py           # MCP server
+  skills/                 # Packaged skills (ship in wheel)
 rag/
-  index_documents.py      # Indexing backend used by setup-rag
+  index_documents.py      # Indexer used by setup-rag
 configs/
-  references.example.yaml # Example indexing config
+  references.example.yaml # Example only — users run init-references instead
 docs/
-  examples/               # RAG-friendly example notes (CMS Higgs open data, …)
+  GETTING_STARTED.md      # Primary user guide (pip-only path)
+  examples/               # Maintainer docs / optional narratives
 ```
 
-Indexed examples and pointers: [`docs/examples/README.md`](docs/examples/README.md).
+---
 
-## Development
+## Development & PyPI releases
 
-Contributor workflow, editable installs, and **PyPI release steps** are documented in [`DEV_README.md`](./DEV_README.md).
+Contributor workflow and release steps: **[DEV_README.md](DEV_README.md)**.
+
+---
 
 ## License
 
 - Open-source: AGPL-3.0-or-later (`LICENSE`)
 - Commercial: see `LICENSE-COMMERCIAL.md`
 
-## Security Notes
+---
 
-- Never commit secrets (`.env`, API keys, tokens).
-- Keep local vector stores and credentials in gitignored paths.
-- Review indexed sources before sharing databases externally.
+## Security notes
+
+- Never commit secrets (`.env`, API keys).
+- Treat **`.cursor/rag_db`** as sensitive if your indexed PDFs are sensitive.

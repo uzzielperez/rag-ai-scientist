@@ -1,26 +1,32 @@
 # References for RAG
 
-Use this document to manage default and user-supplied references.
+Use this document to tune **what gets indexed** into your local vector database.
 
-## Seeded references (this repository)
+## Pip-install users (recommended path)
 
-By default, `configs/references.example.yaml` indexes paths **relative to `configs/`**:
+You normally **never edit YAML by hand** at first:
 
-- `../README.md`
-- `../docs` (including **`docs/examples/`** — see [examples README](examples/README.md))
-- `../papers` (if present)
-- `../scripts` and `../rag` as code sources
-- optional `~/public/my_references` for local PDFs and notes
+```bash
+rag-ai-scientist init-references --project-root . --references-dir /path/to/your/references
+```
 
-Example narrative indexed from `docs/examples/`:
+That creates **`configs/references.yaml`** pointing at **your** folder. Add PDFs and markdown there, then:
 
-- **`docs/examples/cms_higgs_opendata_physics_story.md`** — CMS Run-1 Higgs open-data physics story and **`pip install`** usage notes (pair with packaged skill **`cms-higgs-opendata`**).
+```bash
+rag-ai-scientist setup-rag --project-root . --force
+```
 
-## Bring your own references
+To **add another directory later**, open **`configs/references.yaml`** and append a path under **`sources[].paths`**, or run **`init-references`** again with **`--force`** if you want to replace the config (backup first if needed).
 
-1. Copy template:
+## Example `references.example.yaml` (full source checkout)
+
+Maintainers who clone the repository may start from **`configs/references.example.yaml`**, which indexes paths **relative to `configs/`** (project README, **`docs/`**, **`papers/`**, code paths, etc.). See **`docs/examples/README.md`** for optional CMS Higgs narrative files used in CI/docs builds.
+
+## Bring your own references (manual YAML)
+
+1. Copy template if you prefer not to use **`init-references`**:
    - `cp configs/references.example.yaml configs/references.yaml`
-2. Add your files/directories under `sources[].paths`.
+2. Add your files/directories under **`sources[].paths`**.
 3. Set allowed extensions for each source group.
 
 Supported formats for the v1 indexer:

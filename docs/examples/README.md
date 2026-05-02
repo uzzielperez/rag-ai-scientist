@@ -1,6 +1,16 @@
 # Indexed examples (RAG)
 
-Markdown in this directory is intended for **vector indexing** alongside your project documentation. Paths under `docs/` are picked up by default when using `configs/references.example.yaml` from this repository (`sources.project_docs.paths` includes `../docs`).
+## If you only used `pip install` (no repository checkout)
+
+You **do not** need these files. Put **your own** markdown and PDFs in the directory you passed to **`init-references --references-dir`**, run **`setup-rag`**, and query with **`query_analysis_knowledge`**. Use MCP **`get_skill`** for packaged workflows (for example **`cms-higgs-opendata`**) without copying anything from here.
+
+The rest of this page documents **optional** curated notes **when developing from a full source tree**, plus how **`get_skill`** resolves packaged skills after install.
+
+---
+
+## Maintainer / source-tree layout
+
+Markdown in this directory is intended for **vector indexing** alongside project documentation. Paths under `docs/` are picked up when using `configs/references.example.yaml` from a checkout (`sources.project_docs.paths` includes `../docs`).
 
 | Document | Purpose |
 |----------|---------|
