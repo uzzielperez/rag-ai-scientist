@@ -1,0 +1,18 @@
+# Copy to configs/overleaf.local.yaml (gitignored) or use env vars.
+#
+# Prefer the shared Overleaf MCP JSON:
+#   export OVERLEAF_PROJECTS_CONFIG=$HOME/.config/overleaf-mcp/projects.json
+#
+# Or single-project env:
+#   OVERLEAF_PROJECT_ID / OVERLEAF_GIT_TOKEN
+
+project_id: "REPLACE_WITH_PROJECT_ID"
+git_token: "REPLACE_WITH_TOKEN"
+
+clone_dir: ".overleaf_mirror"
+bundle_dir: "output/overleaf_bundle"
+main_tex_name: "main.tex"
+author_name: "RAG AI Scientist"
+author_email: "rag-ai-scientist@local"
+commit_message: "auto: sync from rag-ai-scientist ({sha} @ {ts})"
+skip_if_unchanged: true

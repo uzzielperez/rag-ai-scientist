@@ -12,3 +12,8 @@ validation_out/
 *.log
 .env
 *.root
+.overleaf_mirror/
+configs/overleaf.local.yaml
+dist/
+build/
+*.egg-info/
