@@ -267,6 +267,14 @@ def cmd_eval(args: argparse.Namespace) -> None:
         )
 
 
+def cmd_demo(args: argparse.Namespace) -> None:
+    """Run the animated end-to-end show inside a throwaway project."""
+    from rag_ai_scientist.demo import main as demo_main
+
+    argv = [flag for flag, on in (("--fast", args.fast), ("--keep", args.keep)) if on]
+    raise SystemExit(demo_main(argv))
+
+
 def build_parser() -> argparse.ArgumentParser:
     common = argparse.ArgumentParser(add_help=False)
     common.add_argument(
@@ -343,6 +351,13 @@ def build_parser() -> argparse.ArgumentParser:
     p_eval.add_argument("--set", action="append", metavar="KEY=VALUE", default=[], help="Config override.")
     p_eval.add_argument("--json", action="store_true", help="Print metrics as JSON.")
     p_eval.set_defaults(func=cmd_eval)
+
+    p_demo = sub.add_parser(
+        "demo", help="Watch the whole harness work end to end in a throwaway project."
+    )
+    p_demo.add_argument("--fast", action="store_true", help="No animation or delays (CI mode).")
+    p_demo.add_argument("--keep", action="store_true", help="Keep the temp demo project afterwards.")
+    p_demo.set_defaults(func=cmd_demo)
 
     return parser
 

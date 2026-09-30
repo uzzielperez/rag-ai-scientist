@@ -91,6 +91,7 @@ Isolation tip: use a dedicated venv (e.g. `~/venvs/rag-ai-scientist`) instead of
 | **`handoff create` / `handoff apply`** | Package collaborator work into a verified bundle, then preview or apply it from a clean checkout. |
 | **`rag-ai-scientist-handoff create` / `apply`** | Lightweight standalone handoff CLI; works without installing RAG/ML dependencies. |
 | **`ras init-project` / `index` / `run` / `eval`** | Domain-free verification harness (see [docs/harness.md](docs/harness.md)). |
+| **`ras demo`** | Watch the whole harness work end to end in a throwaway project (animated, offline). |
 | **`harness list` / `harness run`** | Legacy profile loops — no profiles ship by default (register your own). |
 | **`overleaf list-projects` / `status` / `sync`** | Inspect / push Overleaf projects via Git integration. |
 | **`overleaf install-node-server`** | Install the vendored Node Overleaf MCP server (full read/write/commit/push tools) — no separate download needed. |
@@ -112,7 +113,9 @@ ras skills list --project-root .    # skills promoted by passing runs
 
 Legacy MCP tools **`harness_list_profiles`** / **`harness_run`** expose the profile interface — no profiles ship by default; register one with `harness.registry.register`. Full reference: **[docs/harness.md](docs/harness.md)**.
 
-**Prefer watching to reading:** `python scripts/demo.py` (from a source checkout — the script ships in the repo, not in the wheel) is an animated terminal show that drives the real `ras` CLI against a throwaway project — scaffold → corpus → index → the gated loop → eval → skill → report — entirely offline, then cleans up after itself. Add `--fast` for instant output (CI mode) or `--keep` to explore the demo project afterwards.
+**Prefer watching to reading:** `ras demo` is an animated terminal show that drives the real `ras` CLI against a throwaway project — scaffold → corpus → index → the gated loop → eval → skill → report — entirely offline, then deletes the project afterwards. It ships **inside the wheel**, so `pip install` is all you need: `ras demo --fast` for instant output (CI mode), `ras demo --keep` to explore the demo project afterwards.
+
+**Learning it:** **[docs/TUTORIAL.md](docs/TUTORIAL.md)** walks the flow end to end with the output you should see and a gate-by-gate failure playbook. The same walkthrough ships as a packaged skill — any MCP client can load it with **`get_skill("harness-tutorial")`**.
 
 ---
 
@@ -201,6 +204,7 @@ See **[Getting started](docs/GETTING_STARTED.md)** for setup details and the opt
 - Skills ship **inside the installed package**. Access via MCP **`get_skill`**:
   - **`cms-higgs-opendata`** — CMS Run-1 Higgs open-data replication
   - **`overleaf-paper-sync`** — Overleaf Git sync + MCP tools
+  - **`harness-tutorial`** — guided first run of the `ras` verification harness
   - **`rag-setup`** and other project workflow skills
 - Additional **`get_skill`** and client configuration examples are included in **`docs/examples/README.md`** in the source distribution.
 
@@ -209,9 +213,9 @@ See **[Getting started](docs/GETTING_STARTED.md)** for setup details and the opt
 The golden-set format and an example question set ship in `evals/golden/`. The corpus is yours: drop PDFs or Markdown into `docs/references/papers/`. Nothing here needs a model, an API key or a network connection.
 
 ```bash
-python scripts/demo.py --fast   # self-contained: builds its own 4-document corpus in a temp dir and clears every gate
-ras run --project-root .        # index → answer → validate → correct; all gates must pass
-ras eval --project-root .       # tier pass rates against the golden set
+ras demo --fast               # self-contained: builds its own 4-document corpus in a temp dir and clears every gate
+ras run --project-root .      # index → answer → validate → correct; all gates must pass
+ras eval --project-root .     # tier pass rates against the golden set
 ```
 
 See **[docs/harness.md](docs/harness.md)** for configuration, gates, remedies and skills.

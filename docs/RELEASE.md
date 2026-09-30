@@ -8,7 +8,8 @@ and `rag_ai_scientist/__init__.py` (`__version__`).
 ```bash
 cd ~/Desktop/rag-ai-scientist
 source .venv/bin/activate
-python -m pytest tests/ -q          # expect: 32 passed
+python -m pytest tests/ -q          # expect: 37 passed
+ras demo --fast                     # expect: exit 0, ALL GATES PASSED inside the show
 ras run  --project-root .           # expect: [ALL GATES PASSED]
 ras eval --project-root .           # expect: tier1 1.0  tier23 1.0  citations_valid True
 ```
@@ -28,13 +29,18 @@ with `400 File already exists`.
 ## 3. Sanity-check the wheel
 
 ```bash
-python -m zipfile -l dist/rag_ai_scientist-0.2.0-py3-none-any.whl \
-  | grep -E 'ras_cli|harness/|skills/_template'
+python -m zipfile -l dist/rag_ai_scientist-0.2.1-py3-none-any.whl \
+  | grep -E 'ras_cli|demo|harness/|skills/harness-tutorial|skills/_template'
 ```
 
-The wheel carries `rag_ai_scientist/` plus `skills/**/*.md`; `docs/`, `tests/`
-and `evals/golden/` are **not** packaged, so a `pip install` user gets the CLI
-but not the LHCb corpus or golden set. Those live in the repository.
+The wheel carries `rag_ai_scientist/` plus `skills/**/*.md` (including
+`harness-tutorial`) and the packaged `demo.py` behind `ras demo`. `docs/`,
+`tests/` and `evals/golden/` are **not** in the wheel, so a `pip install` user
+gets the CLI, the demo and the tutorial skill, but not the walkthrough Markdown
+or the LHCb corpus — those come from the sdist or the repository.
+
+`MANIFEST.in` puts `docs/**/*.md` and `scripts/demo.py` into the **sdist** only.
+Keep it that way: never glob PDFs into an sdist.
 
 ## 4. Upload
 
@@ -45,8 +51,8 @@ API token is required — username/password uploads are refused.
 ```bash
 export TWINE_USERNAME=__token__
 export TWINE_PASSWORD=pypi-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-twine upload dist/rag_ai_scientist-0.2.0-py3-none-any.whl \
-             dist/rag_ai_scientist-0.2.0.tar.gz
+twine upload dist/rag_ai_scientist-0.2.1-py3-none-any.whl \
+             dist/rag_ai_scientist-0.2.1.tar.gz
 ```
 
 Or avoid the env var entirely with keyring (`pip install keyring`, then store
@@ -62,15 +68,16 @@ twine upload --repository-url https://test.pypi.org/legacy/ dist/*
 
 ```bash
 python -m venv /tmp/verify-release && source /tmp/verify-release/bin/activate
-pip install -U rag-ai-scientist==0.2.0
+pip install -U rag-ai-scientist==0.2.1
 ras --help && python -c "import rag_ai_scientist as r; print(r.__version__)"
+ras demo --fast          # the demo must work with no repository present
 ```
 
 ## 6. Tag it
 
 ```bash
-git add -A && git commit -m "Release 0.2.0"
-git tag v0.2.0 && git push && git push --tags
+git add -A && git commit -m "Release 0.2.1"
+git tag v0.2.1 && git push && git push --tags
 ```
 
 ## Notes
@@ -84,3 +91,8 @@ git tag v0.2.0 && git push && git push --tags
   plus `license-files`. Harmless today, worth migrating when convenient.
 - `0.2.0` rather than `0.1.11`: removing the `whest` profile and the
   `whest-estimation-challenge` / `challenge-harness` skills is a breaking change.
+- `0.2.0` is frozen on PyPI (uploaded 2026-09-30) and its README/project page
+  cannot be edited; `0.2.1` is the first release that ships the demo as
+  `ras demo` and the tutorial as the packaged `harness-tutorial` skill.
+  If a release ever ships broken, the fix is a new number — or
+  yank the files in the PyPI UI so pip skips them while they stay downloadable.

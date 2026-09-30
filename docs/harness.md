@@ -12,6 +12,7 @@ ras init-project --project-root .   # scaffold configs/harness.yaml + data dirs
 ras run     --project-root .        # PLAN/EXECUTE/VALIDATE/CORRECT loop
 ras eval    --project-root .        # score the run against the golden set
 ras report  --project-root .        # re-render report.md for a run
+ras demo    [--fast] [--keep]       # watch the whole flow in a throwaway project
 ras skills list --project-root .    # skills from passing runs
 ```
 
