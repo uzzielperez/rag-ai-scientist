@@ -272,6 +272,8 @@ def cmd_demo(args: argparse.Namespace) -> None:
     from rag_ai_scientist.demo import main as demo_main
 
     argv = [flag for flag, on in (("--fast", args.fast), ("--keep", args.keep)) if on]
+    if args.speed != 1.0:
+        argv += ["--speed", str(args.speed)]
     raise SystemExit(demo_main(argv))
 
 
@@ -357,6 +359,21 @@ def build_parser() -> argparse.ArgumentParser:
     )
     p_demo.add_argument("--fast", action="store_true", help="No animation or delays (CI mode).")
     p_demo.add_argument("--keep", action="store_true", help="Keep the temp demo project afterwards.")
+    p_demo.add_argument(
+        "--speed",
+        type=float,
+        default=1.0,
+        metavar="FACTOR",
+        help="Stretch every pause and slow the typing: 2 = half speed, 0.5 = double time (default: 1).",
+    )
+    p_demo.add_argument(
+        "--slow",
+        action="store_const",
+        const=2.0,
+        dest="speed",
+        default=argparse.SUPPRESS,
+        help="Shorthand for --speed 2.",
+    )
     p_demo.set_defaults(func=cmd_demo)
 
     return parser

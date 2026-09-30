@@ -21,7 +21,7 @@ You never grade the answer. You write the **golden set** (the exam) and the **ga
 
 ## Step 0 — watch it first
 
-`ras demo` runs the whole thing against a throwaway project (`--fast` for instant output, `--keep` to inspect afterwards). Do this before touching a real project.
+`ras demo` runs the whole thing against a throwaway project (`--fast` for instant output, `--slow` or `--speed N` to slow the pacing down, `--keep` to inspect afterwards). Do this before touching a real project.
 
 ## Step 1 — scaffold
 

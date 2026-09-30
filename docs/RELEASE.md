@@ -35,7 +35,7 @@ check dist/*`, `.venv/bin/python -m build` — which works from any directory.
 ## 3. Sanity-check the wheel
 
 ```bash
-python -m zipfile -l dist/rag_ai_scientist-0.2.1-py3-none-any.whl \
+python -m zipfile -l dist/rag_ai_scientist-0.2.2-py3-none-any.whl \
   | grep -E 'ras_cli|demo|harness/|skills/harness-tutorial|skills/_template'
 ```
 
@@ -58,8 +58,8 @@ API token is required — username/password uploads are refused.
 cd ~/Desktop/rag-ai-scientist      # project root, where dist/ lives
 export TWINE_USERNAME=__token__
 export TWINE_PASSWORD=pypi-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-.venv/bin/twine upload dist/rag_ai_scientist-0.2.1-py3-none-any.whl \
-                       dist/rag_ai_scientist-0.2.1.tar.gz
+.venv/bin/twine upload dist/rag_ai_scientist-0.2.2-py3-none-any.whl \
+                       dist/rag_ai_scientist-0.2.2.tar.gz
 ```
 
 Or avoid the env var entirely with keyring (`pip install keyring`, then store
@@ -75,7 +75,7 @@ To dry-run against TestPyPI first (needs a separate test.pypi.org account):
 
 ```bash
 python -m venv /tmp/verify-release && source /tmp/verify-release/bin/activate
-pip install -U rag-ai-scientist==0.2.1
+pip install -U rag-ai-scientist==0.2.2
 ras --help && python -c "import rag_ai_scientist as r; print(r.__version__)"
 ras demo --fast          # the demo must work with no repository present
 ```
@@ -83,8 +83,8 @@ ras demo --fast          # the demo must work with no repository present
 ## 6. Tag it
 
 ```bash
-git add -A && git commit -m "Release 0.2.1"
-git tag v0.2.1 && git push && git push --tags
+git add -A && git commit -m "Release 0.2.2"
+git tag v0.2.2 && git push && git push --tags
 ```
 
 ## Notes
@@ -103,3 +103,11 @@ git tag v0.2.1 && git push && git push --tags
   `ras demo` and the tutorial as the packaged `harness-tutorial` skill.
   If a release ever ships broken, the fix is a new number — or
   yank the files in the PyPI UI so pip skips them while they stay downloadable.
+
+- Case study in immutability: `0.2.1` was live on PyPI for about 25 minutes
+  before demo pacing (`--speed` / `--slow`) was written. The published wheel's
+  bytes are fixed - there is no amend, only a new number - so the pacing feature
+  ships as `0.2.2` while `0.2.1` keeps its un-paced demo forever. Build and
+  upload from a frozen tree, and let anything written afterwards be the next
+  release.
+

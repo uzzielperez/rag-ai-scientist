@@ -65,3 +65,45 @@ def test_repo_wrapper_stays_thin() -> None:
     body = wrapper.read_text(encoding="utf-8")
     assert "from rag_ai_scientist.demo import main" in body
     assert len(body.splitlines()) < 40, "scripts/demo.py must stay a thin wrapper"
+
+
+def test_speed_flag_stretches_every_delay(monkeypatch: pytest.MonkeyPatch) -> None:
+    """One pace factor must govern pauses, typing and streamed output alike - no stragglers."""
+    from rag_ai_scientist import demo
+
+    waits: list[float] = []
+    monkeypatch.setattr("time.sleep", lambda seconds: waits.append(seconds))
+
+    slow = demo.Show(animate=True, color=False, pace=3.0)
+    slow.sleep(1.0)
+    slow.type("ab", cps=100)
+    house = demo.Show(animate=True, color=False)
+    house.sleep(1.0)
+    house.type("ab", cps=100)
+
+    assert waits == [3.0, 0.03, 0.03, 1.0, 0.01, 0.01]
+
+
+def test_demo_parser_exposes_the_pace() -> None:
+    from rag_ai_scientist import demo
+
+    parser = demo.build_arg_parser()
+    assert parser.parse_args([]).speed == 1.0
+    assert parser.parse_args(["--slow"]).speed == 2.0
+    assert parser.parse_args(["--speed", "0.5"]).speed == 0.5
+    assert parser.parse_args(["--speed", "3"]).speed == 3.0
+    assert demo.main(["--speed", "0"]) == 2, "a pace of 0 or less must be refused"
+
+
+def test_ras_demo_forwards_the_pace(monkeypatch: pytest.MonkeyPatch) -> None:
+    """`ras demo --slow` has to arrive as `--speed 2`, not be silently dropped."""
+    from rag_ai_scientist import demo
+
+    seen: list[list[str]] = []
+    monkeypatch.setattr(demo, "main", lambda argv: seen.append(argv) or 0)
+    args = ras_cli.build_parser().parse_args(["demo", "--slow", "--keep"])
+
+    with pytest.raises(SystemExit):
+        ras_cli.cmd_demo(args)
+
+    assert seen == [["--keep", "--speed", "2.0"]]

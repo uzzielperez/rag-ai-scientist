@@ -22,6 +22,7 @@ If `ras` is missing, the install did not land on your `PATH` — check
 
 ```bash
 ras demo          # animated, about a minute
+ras demo --slow   # half speed, so you can read each act as it lands
 ras demo --fast   # same show, instant, safe to pipe
 ```
 

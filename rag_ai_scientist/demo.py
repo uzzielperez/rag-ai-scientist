@@ -40,16 +40,17 @@ MAGENTA = "\033[35m"
 class Show:
     """Tiny presentation layer: typewriter narration, banners, streamed output."""
 
-    def __init__(self, animate: bool, color: bool) -> None:
+    def __init__(self, animate: bool, color: bool, pace: float = 1.0) -> None:
         self.animate = animate
         self.color = color
+        self.pace = pace  # 1.0 = the house pace; 2.0 plays the show at half speed
 
     def paint(self, text: str, code: str) -> str:
         return f"{code}{text}{RESET}" if (code and self.color) else text
 
     def sleep(self, seconds: float) -> None:
         if self.animate:
-            time.sleep(seconds)
+            time.sleep(seconds * self.pace)
 
     def line(self, text: str = "", code: str = "") -> None:
         print(self.paint(text, code), flush=True)
@@ -61,7 +62,7 @@ class Show:
             return
         for char in text:
             print(char, end="", flush=True)
-            time.sleep(1 / cps)
+            time.sleep(self.pace / cps)
         print(f"\r\033[2K{self.paint(text, code)}", flush=True)
 
     def chapter(self, number: str, title: str, *paragraphs: str) -> None:
@@ -106,7 +107,7 @@ class Show:
                 run_id = match.group(1)
             shown += 1
             if self.animate:
-                time.sleep(0.03)
+                time.sleep(0.03 * self.pace)
         rc = proc.wait()
         if max_lines is not None and shown >= max_lines:
             self.line(f"  … output truncated ({shown} lines shown)", DIM)
@@ -370,14 +371,36 @@ def build_arg_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--fast", action="store_true", help="No animation or delays (CI mode).")
     parser.add_argument("--keep", action="store_true", help="Keep the temp demo project afterwards.")
+    parser.add_argument(
+        "--speed",
+        type=float,
+        default=1.0,
+        metavar="FACTOR",
+        help="Stretch every pause and slow the typing: 2 = half speed, 0.5 = double time (default: 1).",
+    )
+    parser.add_argument(
+        "--slow",
+        action="store_const",
+        const=2.0,
+        dest="speed",
+        default=argparse.SUPPRESS,
+        help="Shorthand for --speed 2.",
+    )
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
     args = build_arg_parser().parse_args(argv)
+    if args.speed <= 0:
+        print("ras demo: --speed must be greater than 0", file=sys.stderr)
+        return 2
 
     tty = sys.stdout.isatty()
-    show = Show(animate=tty and not args.fast, color=tty and "NO_COLOR" not in os.environ)
+    show = Show(
+        animate=tty and not args.fast,
+        color=tty and "NO_COLOR" not in os.environ,
+        pace=args.speed,
+    )
 
     probe = subprocess.run(
         [sys.executable, "-m", "rag_ai_scientist.ras_cli", "--help"],

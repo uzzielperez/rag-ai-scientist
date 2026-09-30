@@ -113,7 +113,7 @@ ras skills list --project-root .    # skills promoted by passing runs
 
 Legacy MCP tools **`harness_list_profiles`** / **`harness_run`** expose the profile interface — no profiles ship by default; register one with `harness.registry.register`. Full reference: **[docs/harness.md](docs/harness.md)**.
 
-**Prefer watching to reading:** `ras demo` is an animated terminal show that drives the real `ras` CLI against a throwaway project — scaffold → corpus → index → the gated loop → eval → skill → report — entirely offline, then deletes the project afterwards. It ships **inside the wheel**, so `pip install` is all you need: `ras demo --fast` for instant output (CI mode), `ras demo --keep` to explore the demo project afterwards.
+**Prefer watching to reading:** `ras demo` is an animated terminal show that drives the real `ras` CLI against a throwaway project — scaffold → corpus → index → the gated loop → eval → skill → report — entirely offline, then deletes the project afterwards. It ships **inside the wheel**, so `pip install` is all you need: `ras demo --fast` for instant output (CI mode), `ras demo --keep` to explore the demo project afterwards, `ras demo --slow` (or `--speed 3`) to watch it at half or third speed.
 
 **Learning it:** **[docs/TUTORIAL.md](docs/TUTORIAL.md)** walks the flow end to end with the output you should see and a gate-by-gate failure playbook. The same walkthrough ships as a packaged skill — any MCP client can load it with **`get_skill("harness-tutorial")`**.
 
