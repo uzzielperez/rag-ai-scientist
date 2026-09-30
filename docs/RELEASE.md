@@ -17,6 +17,7 @@ ras eval --project-root .           # expect: tier1 1.0  tier23 1.0  citations_v
 ## 2. Build
 
 ```bash
+source .venv/bin/activate        # build and twine live in the project venv
 pip install -U build twine
 rm -rf dist build rag_ai_scientist.egg-info   # dist/ holds older 0.1.x wheels
 python -m build
@@ -25,6 +26,11 @@ twine check dist/*
 
 `rm -rf dist` matters: `twine upload dist/*` with old artifacts in place fails
 with `400 File already exists`.
+
+`build` and `twine` are venv binaries, not system ones: in a shell where the
+venv was never activated, plain `twine` is `command not found`. Either activate,
+or skip activation entirely and address the binaries by path — `.venv/bin/twine
+check dist/*`, `.venv/bin/python -m build` — which works from any directory.
 
 ## 3. Sanity-check the wheel
 
@@ -49,10 +55,11 @@ account" if you publish more than this project). With 2FA on your account, an
 API token is required — username/password uploads are refused.
 
 ```bash
+cd ~/Desktop/rag-ai-scientist      # project root, where dist/ lives
 export TWINE_USERNAME=__token__
 export TWINE_PASSWORD=pypi-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-twine upload dist/rag_ai_scientist-0.2.1-py3-none-any.whl \
-             dist/rag_ai_scientist-0.2.1.tar.gz
+.venv/bin/twine upload dist/rag_ai_scientist-0.2.1-py3-none-any.whl \
+                       dist/rag_ai_scientist-0.2.1.tar.gz
 ```
 
 Or avoid the env var entirely with keyring (`pip install keyring`, then store
@@ -61,7 +68,7 @@ the token under service `pypi` for user `__token__`).
 To dry-run against TestPyPI first (needs a separate test.pypi.org account):
 
 ```bash
-twine upload --repository-url https://test.pypi.org/legacy/ dist/*
+.venv/bin/twine upload --repository-url https://test.pypi.org/legacy/ dist/*
 ```
 
 ## 5. Verify from a clean environment
