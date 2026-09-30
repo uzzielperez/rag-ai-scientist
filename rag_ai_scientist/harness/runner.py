@@ -62,7 +62,7 @@ def _run_command(cmd: list[str], *, cwd: Path, timeout: int | None) -> StageResu
 def run_harness(
     *,
     project_root: Path,
-    profile_name: str = "whest",
+    profile_name: str,
     from_stage: str | None = None,
     until_stage: str | None = None,
     include_optional: bool = False,

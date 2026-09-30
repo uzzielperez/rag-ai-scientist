@@ -47,8 +47,8 @@ Help the user **tell the same physics story** as the Run-1 CMS observation of a 
 ## pip-install integration
 
 - **`get_skill`** with `skill=cms-higgs-opendata` works immediately after **`pip install rag-ai-scientist`** (packaged markdown).
-- **`query_analysis_knowledge`** needs **`rag-ai-scientist setup-rag`** to have built **`.cursor/rag_db`** for that `--project-root`; include the physics-story markdown in indexed paths.
-- Cursor/MCP project mirror: **`.cursor/skills/cms-higgs-opendata/SKILL.md`** (this repository) overrides the packaged copy when present.
+- **`query_analysis_knowledge`** needs **`rag-ai-scientist setup-rag`** to have built the database for that `--project-root`; include the physics-story markdown in indexed paths.
+- Project overrides can live under **`.rag-ai-scientist/skills/cms-higgs-opendata/SKILL.md`**. Existing **`.cursor/skills/`** overrides continue to work.
 
 ## Validation
 

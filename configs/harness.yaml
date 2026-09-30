@@ -1,0 +1,29 @@
+run:
+  name: retrieval-verification
+  mode: A-retrieval
+  max_attempts: 2
+corpus:
+  paths:
+  - docs/references/papers
+  extensions:
+  - .pdf
+  - .md
+  - .txt
+index:
+  chunk_chars: 1200
+  chunk_overlap: 200
+retrieval:
+  top_k: 5
+  min_score: 8.0
+  min_terms: 2
+questions:
+  path: null
+  tier1_min: 1.0
+  tier23_min: 0.8
+skills:
+  generate: true
+  mirror_to_cursor: false
+  version: 0.1.0
+budgets:
+  max_steps: 40
+  max_seconds: 900

@@ -17,3 +17,6 @@ configs/overleaf.local.yaml
 dist/
 build/
 *.egg-info/
+.DS_Store
+.cursor/index/
+output/

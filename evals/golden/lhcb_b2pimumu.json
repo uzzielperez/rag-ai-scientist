@@ -1,0 +1,78 @@
+{
+  "name": "lhcb-b2pimumu-angular",
+  "description": "Hand-checked facts from docs/references/papers/LHCb-PAPER-2026-015-1CWR.pdf (B+ -> pi+ mu+ mu- angular observables, first measurement). Tier 1 must always resolve; tier 2/3 may miss at most the configured fraction; one unresolved negative control guards against guessing.",
+  "questions": [
+    {
+      "id": "Q01",
+      "tier": 1,
+      "question": "What integrated luminosity of proton-proton collisions was collected by the LHCb experiment for this measurement of the B+ to pi+ mu+ mu- angular distribution?",
+      "expect": "supported",
+      "expect_keywords": ["9 fb", "luminosity"],
+      "notes": "Abstract and introduction both state 9 fb-1 collected with LHCb."
+    },
+    {
+      "id": "Q02",
+      "tier": 1,
+      "question": "Which two angular observables parameterise the differential decay rate of the B+ to pi+ mu+ mu- decay in cos theta_l?",
+      "expect": "supported",
+      "expect_keywords": ["afb", "fh"],
+      "notes": "Eq. (1): A_FB (forward-backward asymmetry) and F_H (flatness)."
+    },
+    {
+      "id": "Q03",
+      "tier": 1,
+      "question": "In which invariant-mass window are the B+ to pi+ mu+ mu- candidates selected for the cos theta_l distributions?",
+      "expect": "supported",
+      "expect_keywords": ["5260", "5300"],
+      "notes": "5260 < m(pi+ mu+ mu-) < 5300 MeV/c^2, about twice the mass resolution."
+    },
+    {
+      "id": "Q04",
+      "tier": 1,
+      "question": "What are the observed signal yields in the low-q2 and high-q2 regions of the fit?",
+      "expect": "supported",
+      "expect_keywords": ["89", "135"],
+      "notes": "89 +- 13 (low-q2) and 135 +- 15 (high-q2), statistical uncertainties only."
+    },
+    {
+      "id": "Q05",
+      "tier": 2,
+      "question": "In which two q2 regions is the angular distribution analysed in this paper?",
+      "expect": "supported",
+      "expect_keywords": ["1.1", "15.0"],
+      "notes": "1.1 < q2 < 6.0 and 15.0 < q2 < 22.0 GeV^2/c^4."
+    },
+    {
+      "id": "Q06",
+      "tier": 2,
+      "question": "At what confidence levels are the measured observables found to be consistent with Standard Model predictions?",
+      "expect": "supported",
+      "expect_keywords": ["99%", "68%"],
+      "notes": "99% CL in the low-q2 region, 68% CL in the high-q2 region."
+    },
+    {
+      "id": "Q07",
+      "tier": 2,
+      "question": "Which source of systematic uncertainty is the largest one on F_H?",
+      "expect": "supported",
+      "expect_keywords": ["q2 spectrum"],
+      "notes": "Knowledge of the q2 spectrum of the signal (efficiency-model systematics)."
+    },
+    {
+      "id": "Q08",
+      "tier": 2,
+      "question": "Which type of quark transition mediates the B+ to pi+ mu+ mu- decay at leading order in the Standard Model?",
+      "expect": "supported",
+      "expect_keywords": ["neutral-current"],
+      "notes": "b- to d-quark flavour-changing neutral-current transition."
+    },
+    {
+      "id": "Q09",
+      "tier": 3,
+      "question": "What value of the CKM weak mixing angle gamma is measured in this paper?",
+      "expect": "unresolved",
+      "expect_keywords": ["angle gamma"],
+      "notes": "Negative control: the paper measures A_FB and F_H, never the angle gamma; the harness must record this as unresolved instead of guessing."
+    }
+  ]
+}

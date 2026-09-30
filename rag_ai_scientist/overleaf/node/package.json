@@ -1,0 +1,10 @@
+{
+  "name": "overleaf-mcp",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Custom Overleaf Git MCP (list/read/write/commit/push/upload)",
+  "main": "overleaf-mcp-server.js",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.1"
+  }
+}
