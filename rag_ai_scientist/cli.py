@@ -8,6 +8,7 @@ import tempfile
 from pathlib import Path
 
 import yaml
+from rag_ai_scientist.project_paths import DEFAULT_DATA_DIR, resolve_project_data_dir
 
 
 DEFAULT_DOC_TYPE_RULES: dict[str, list[str]] = {
@@ -35,6 +36,7 @@ def _write_references_yaml(
     scientific_chunk_size: int,
     scientific_chunk_overlap: int,
     extensions: list[str],
+    data_dir: str,
 ) -> Path:
     configs_dir = project_root / "configs"
     configs_dir.mkdir(parents=True, exist_ok=True)
@@ -53,6 +55,7 @@ def _write_references_yaml(
             "chunk_overlap": chunk_overlap,
             "scientific_chunk_size": scientific_chunk_size,
             "scientific_chunk_overlap": scientific_chunk_overlap,
+            "data_dir": data_dir,
             "doc_type_rules": DEFAULT_DOC_TYPE_RULES,
         },
         "sources": [
@@ -89,6 +92,7 @@ def cmd_init_references(args: argparse.Namespace) -> None:
         scientific_chunk_size=args.scientific_chunk_size,
         scientific_chunk_overlap=args.scientific_chunk_overlap,
         extensions=args.extensions,
+        data_dir=args.data_dir,
     )
 
     print(f"Wrote: {config_path}")
@@ -102,7 +106,7 @@ def cmd_setup_rag(args: argparse.Namespace) -> None:
             f"Missing config: {config_path}. Run `rag-ai-scientist init-references` first."
         )
 
-    out_dir = project_root / ".cursor" / "rag_db"
+    out_dir = resolve_project_data_dir(project_root) / "rag_db"
     out_dir.parent.mkdir(parents=True, exist_ok=True)
 
     cmd: list[str] = [
@@ -158,6 +162,11 @@ def cmd_harness_run(args: argparse.Namespace) -> None:
         dry_run=args.dry_run,
         timeout_s=args.timeout or None,
         run_id=args.run_id or None,
+        task_id=args.task_id or None,
+        seed=args.seed,
+        config_paths=tuple(args.config),
+        input_paths=tuple(args.input),
+        dataset_ids=tuple(args.dataset_id),
     )
     print(yaml.safe_dump(summary, sort_keys=False))
     if not summary.get("ok", False):
@@ -238,7 +247,7 @@ def cmd_doctor(args: argparse.Namespace) -> None:
         except Exception as exc:
             checks.append(_print_check(False, "config-parse", str(exc)))
 
-    rag_parent = project_root / ".cursor"
+    rag_parent = resolve_project_data_dir(project_root)
     rag_db = rag_parent / "rag_db"
     try:
         rag_parent.mkdir(parents=True, exist_ok=True)
@@ -289,6 +298,7 @@ def cmd_self_test(args: argparse.Namespace) -> None:
             scientific_chunk_size=700,
             scientific_chunk_overlap=100,
             extensions=[".md", ".txt"],
+            data_dir=DEFAULT_DATA_DIR,
         )
         checks.append(_print_check(config_path.exists(), "selftest-config-written", str(config_path)))
 
@@ -303,6 +313,8 @@ def cmd_self_test(args: argparse.Namespace) -> None:
             [sys.executable, "-m", "rag_ai_scientist.cli", "init-references", "--help"],
             [sys.executable, "-m", "rag_ai_scientist.cli", "setup-rag", "--help"],
             [sys.executable, "-m", "rag_ai_scientist.cli", "mcp", "--help"],
+            [sys.executable, "-m", "rag_ai_scientist.cli", "handoff", "create", "--help"],
+            [sys.executable, "-m", "rag_ai_scientist.cli", "handoff", "apply", "--help"],
             [sys.executable, "-m", "rag.index_documents", "--help"],
         ):
             try:
@@ -316,6 +328,32 @@ def cmd_self_test(args: argparse.Namespace) -> None:
     print("Self-test passed.")
 
 
+def cmd_handoff_apply(args: argparse.Namespace) -> None:
+    from rag_ai_scientist.handoff import apply_handoff
+
+    try:
+        print(
+            apply_handoff(
+                Path(args.project_root),
+                Path(args.bundle),
+                apply_changes=args.apply,
+            )
+        )
+    except (OSError, ValueError, subprocess.CalledProcessError) as exc:
+        raise SystemExit(f"handoff failed: {exc}") from exc
+
+
+def cmd_handoff_create(args: argparse.Namespace) -> None:
+    from rag_ai_scientist.handoff_bundle import create_handoff
+
+    try:
+        output = create_handoff(args)
+    except (OSError, ValueError, subprocess.CalledProcessError) as exc:
+        raise SystemExit(f"handoff failed: {exc}") from exc
+    print(f"Created handoff bundle: {output}")
+    print(f"Review before sharing: {output / 'HANDOFF.md'}")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(prog="rag-ai-scientist")
     sub = parser.add_subparsers(dest="cmd", required=True)
@@ -323,6 +361,7 @@ def main() -> None:
     p_init = sub.add_parser("init-references", help="Write configs/references.yaml from a references directory.")
     p_init.add_argument("--project-root", default=".", help="Target analysis repo root.")
     p_init.add_argument("--references-dir", default="", help="Directory containing your reference PDFs/MD/TXT/etc.")
+    p_init.add_argument("--data-dir", default=DEFAULT_DATA_DIR, help="Project-local RAG data directory (relative to project root unless absolute).")
     p_init.add_argument("--collection-name", default="rag-ai-scientist")
     p_init.add_argument("--chunk-size", type=int, default=1500)
     p_init.add_argument("--chunk-overlap", type=int, default=200)
@@ -341,7 +380,7 @@ def main() -> None:
 
     p_init.set_defaults(_parse_exts=_parse_exts, func=cmd_init_references)
 
-    p_setup = sub.add_parser("setup-rag", help="Index references and build .cursor/rag_db.")
+    p_setup = sub.add_parser("setup-rag", help="Index references and build the project RAG database.")
     p_setup.add_argument("--project-root", default=".", help="Target analysis repo root.")
     p_setup.add_argument("--force", action="store_true", help="Rebuild rag_db from scratch.")
     p_setup.add_argument("--collection-name", default="", help="Override collection name.")
@@ -349,7 +388,7 @@ def main() -> None:
     p_setup.add_argument("--chunk-overlap", type=int, default=0)
     p_setup.set_defaults(func=cmd_setup_rag)
 
-    p_mcp = sub.add_parser("mcp", help="Start MCP server (stdio). Point Cursor's MCP to this command.")
+    p_mcp = sub.add_parser("mcp", help="Start the stdio MCP server for any compatible client.")
     p_mcp.add_argument("--project-root", default=".", help="Target analysis repo root.")
     p_mcp.set_defaults(func=cmd_mcp)
 
@@ -372,6 +411,11 @@ def main() -> None:
     p_harness_run.add_argument("--dry-run", action="store_true", help="Print stages without executing.")
     p_harness_run.add_argument("--timeout", type=int, default=0, help="Per-stage timeout seconds (0=none).")
     p_harness_run.add_argument("--run-id", default="", help="Optional run id for runs/ artifacts.")
+    p_harness_run.add_argument("--task-id", default="", help="Research task identifier recorded in the run manifest.")
+    p_harness_run.add_argument("--seed", type=int, help="Random seed recorded in the run manifest.")
+    p_harness_run.add_argument("--config", action="append", default=[], help="Config file to fingerprint; may be repeated.")
+    p_harness_run.add_argument("--input", action="append", default=[], help="Input file/directory to fingerprint; may be repeated.")
+    p_harness_run.add_argument("--dataset-id", action="append", default=[], help="Dataset identifier or URI; may be repeated.")
     p_harness_run.set_defaults(func=cmd_harness_run)
 
     p_overleaf = sub.add_parser("overleaf", help="Overleaf Git sync / inspect (custom MCP companion).")
@@ -402,6 +446,24 @@ def main() -> None:
 
     p_self_test = sub.add_parser("self-test", help="Run fast CLI/package self-tests.")
     p_self_test.set_defaults(func=cmd_self_test)
+
+    p_handoff = sub.add_parser("handoff", help="Inspect and resume collaborator handoff bundles.")
+    handoff_sub = p_handoff.add_subparsers(dest="handoff_cmd", required=True)
+    p_handoff_create = handoff_sub.add_parser("create", help="Bundle local work for a collaborator.")
+    p_handoff_create.add_argument("--repo-root", type=Path, default=Path.cwd(), help="Git repository root (default: current directory).")
+    p_handoff_create.add_argument("--output", type=Path, help="New output directory outside the repository.")
+    p_handoff_create.add_argument("--run-id", help="Summarize runs/<run-id>/logs and summary.json without copying raw logs.")
+    p_handoff_create.add_argument("--prompt-log", type=Path, action="append", default=[], help="Explicit raw transcript to copy; may be repeated.")
+    p_handoff_create.add_argument("--include-untracked", action="store_true", help="Copy non-ignored regular untracked files into the bundle.")
+    p_handoff_create.add_argument("--max-untracked-mb", type=int, default=50, help="Maximum copied untracked data size (default: 50 MiB).")
+    p_handoff_create.add_argument("--what-changed", default="", help="Short summary of the current work.")
+    p_handoff_create.add_argument("--next-step", default="", help="Recommended next action or blocker.")
+    p_handoff_create.set_defaults(func=cmd_handoff_create)
+    p_handoff_apply = handoff_sub.add_parser("apply", help="Validate and apply a handoff bundle.")
+    p_handoff_apply.add_argument("bundle", help="Path to the collaborator's handoff bundle.")
+    p_handoff_apply.add_argument("--project-root", default=".", help="Target Git checkout (default: current directory).")
+    p_handoff_apply.add_argument("--apply", action="store_true", help="Apply changes; without this flag, only validate.")
+    p_handoff_apply.set_defaults(func=cmd_handoff_apply)
 
     args = parser.parse_args()
 

@@ -16,6 +16,7 @@ The reliability loop has seven stages:
 - Resume: `./scripts/reliability_loop.sh --from <stage>`
 - Partial: `./scripts/reliability_loop.sh --until <stage>`
 - Custom run ID: `./scripts/reliability_loop.sh --run-id <id>`
+- Create a collaborator handoff bundle: see [Collaborator handoff](HANDOFF.md)
 
 ## Stage contracts
 

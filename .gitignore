@@ -4,6 +4,7 @@ __pycache__/
 .pytest_cache/
 .mypy_cache/
 
+.rag-ai-scientist/rag_db/
 .cursor/rag_db/
 .cursor/.cache/
 .cursor/.env

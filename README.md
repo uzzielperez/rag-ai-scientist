@@ -9,20 +9,20 @@ Installable toolkit for local RAG indexing + MCP serving in scientific workflows
 `rag-ai-scientist` gives you:
 
 - a CLI to initialize and build a **local vector database** from **your** papers and notes,
-- an MCP server entrypoint for Cursor / agent integrations,
+- an MCP server entrypoint for any MCP-compatible AI client,
 - **packaged skills** under `rag_ai_scientist/skills/` (workflow checklists—no Git clone needed),
 - a **challenge harness** (reference profile: **whest**) — the example RAG → skill → validate → score loop,
 - **Overleaf Git sync** tools (same credentials as your Overleaf MCP) for pushing LaTeX bundles.
 
-On **PyPI**, only this README is shown; detailed guides live on **GitHub** (absolute links below).
+On **PyPI**, this README contains the complete install and MCP setup workflow. Additional examples are included in the source distribution.
 
 ---
 
 ## End-user workflow (pip only — **no clone required**)
 
-You install from PyPI, create **any folder** for your project, put your research materials there, index once, then connect Cursor.
+You install from PyPI, create **any folder** for your project, put your research materials there, index once, then connect an MCP-compatible AI client.
 
-**Full step-by-step:** **[Getting started](https://github.com/uzzielperez/rag-ai-scientist/blob/dev/docs/GETTING_STARTED.md)** — install → `references/` → `init-references` → `setup-rag` → MCP → update notes and rebuild.
+The workflow is: install → add files under `references/` → `init-references` → `setup-rag` → configure any MCP client → update notes and rebuild as needed.
 
 Minimal command sequence (after `pip install rag-ai-scientist`):
 
@@ -33,7 +33,7 @@ cd ~/my-ai-scientist
 
 rag-ai-scientist init-references --project-root . --references-dir ./references
 rag-ai-scientist setup-rag --project-root . --force
-rag-ai-scientist mcp --project-root .    # usually configured once inside Cursor — see Getting started link above
+rag-ai-scientist mcp --project-root .    # configure this command in your MCP client
 ```
 
 - **`query_analysis_knowledge`** answers from **your indexed files**.
@@ -54,7 +54,7 @@ python -m pip install rag-ai-scientist
 Pinned example:
 
 ```bash
-python -m pip install rag-ai-scientist==0.1.5
+python -m pip install rag-ai-scientist==0.1.9
 ```
 
 PyPI project page: [rag-ai-scientist](https://pypi.org/project/rag-ai-scientist/)
@@ -85,8 +85,10 @@ Isolation tip: use a dedicated venv (e.g. `~/venvs/rag-ai-scientist`) instead of
 | Command | Purpose |
 |---------|---------|
 | **`init-references`** | Writes **`configs/references.yaml`** pointing at your references directory. |
-| **`setup-rag`** | Indexes sources into **`.cursor/rag_db`**. |
+| **`setup-rag`** | Indexes sources into **`.rag-ai-scientist/rag_db`** by default (or the configured `indexing.data_dir`). |
 | **`mcp`** | Starts the stdio MCP server — point **`--project-root`** at the same folder you indexed. |
+| **`handoff create` / `handoff apply`** | Package collaborator work into a verified bundle, then preview or apply it from a clean checkout. |
+| **`rag-ai-scientist-handoff create` / `apply`** | Lightweight standalone handoff CLI; works without installing RAG/ML dependencies. |
 | **`harness list` / `harness run`** | Challenge loops (default profile: **`whest`**). |
 | **`overleaf list-projects` / `status` / `sync`** | Inspect / push Overleaf projects via Git integration. |
 
@@ -120,22 +122,36 @@ Keep the Node Overleaf MCP for section-level edits; use these Python tools for l
 
 ---
 
-## Cursor MCP configuration
+## Connect an MCP client
 
-Register the server so Cursor runs it with **your** project path:
+The server uses standard MCP over stdio. In VS Code with GitHub Copilot, add this to **`.vscode/mcp.json`** (use absolute paths):
 
 ```json
 {
-  "mcpServers": {
+  "servers": {
     "rag-ai-scientist": {
-      "command": "rag-ai-scientist",
+      "type": "stdio",
+      "command": "/absolute/path/to/venv/bin/rag-ai-scientist",
       "args": ["mcp", "--project-root", "/absolute/path/to/my-ai-scientist"]
     }
   }
 }
 ```
 
-See **[Getting started](https://github.com/uzzielperez/rag-ai-scientist/blob/dev/docs/GETTING_STARTED.md)** for optional **`.cursor/.env`** (LLM keys).
+Other MCP clients use the same command and arguments, though their configuration file/schema may differ. For clients using an `mcpServers` object (including Cursor, Cline, and Claude Desktop), use:
+
+```json
+{
+  "mcpServers": {
+    "rag-ai-scientist": {
+      "command": "/absolute/path/to/venv/bin/rag-ai-scientist",
+      "args": ["mcp", "--project-root", "/absolute/path/to/my-ai-scientist"]
+    }
+  }
+}
+```
+
+See **[Getting started](docs/GETTING_STARTED.md)** for setup details and the optional **`.rag-ai-scientist/.env`** file for LLM keys. Existing projects with an index under **`.cursor/rag_db`** continue to work without moving it.
 
 ---
 
@@ -146,7 +162,7 @@ See **[Getting started](https://github.com/uzzielperez/rag-ai-scientist/blob/dev
   - **`whest-estimation-challenge`** — [ARC WhiteBox Estimation Challenge 2026](https://www.aicrowd.com/challenges/arc-white-box-estimation-challenge-2026) (use with [whest-starterkit](https://github.com/AIcrowd/whest-starterkit))
   - **`challenge-harness`** — generic harness / example-loop skill
   - **`overleaf-paper-sync`** — Overleaf Git sync + MCP tools
-- **[Examples / MCP access](https://github.com/uzzielperez/rag-ai-scientist/blob/dev/docs/examples/README.md)** explains **`get_skill`**, Cursor wiring, and the **whest challenge as an end-to-end example**.
+- Additional **`get_skill`**, client configuration, and **whest challenge** examples are included in **`docs/examples/README.md`** in the source distribution.
 
 ### Whest challenge quick start (combined workflow)
 
@@ -159,7 +175,7 @@ rag-ai-scientist init-references --project-root . --references-dir ./references 
 rag-ai-scientist setup-rag --project-root . --force
 ```
 
-Then in Cursor, point MCP `--project-root` at your `whest-starterkit` folder and ask:
+Then configure any MCP-compatible client with `--project-root` set to your `whest-starterkit` folder and ask:
 
 ```text
 Use the whest-estimation-challenge skill. Start from mean propagation and improve the estimator.
@@ -216,4 +232,4 @@ Contributor workflow and release steps: **[DEV_README.md](https://github.com/uzz
 ## Security notes
 
 - Never commit secrets (`.env`, API keys).
-- Treat **`.cursor/rag_db`** as sensitive if your indexed PDFs are sensitive.
+- Treat **`.rag-ai-scientist/rag_db`** (or your configured data directory) as sensitive if your indexed PDFs are sensitive. Legacy **`.cursor/rag_db`** indexes are also supported.

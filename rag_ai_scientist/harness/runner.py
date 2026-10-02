@@ -4,11 +4,19 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import subprocess
 import time
+from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any, Mapping
 
 from rag_ai_scientist.harness.base import Profile, Stage, StageResult
+from rag_ai_scientist.harness.provenance import (
+    build_run_manifest,
+    capture_source_state,
+    write_run_manifest,
+)
 from rag_ai_scientist.harness.registry import get_profile
 
 
@@ -69,10 +77,19 @@ def run_harness(
     dry_run: bool = False,
     timeout_s: int | None = None,
     run_id: str | None = None,
+    task_id: str | None = None,
+    seed: int | None = None,
+    config_paths: tuple[str, ...] = (),
+    input_paths: tuple[str, ...] = (),
+    dataset_ids: tuple[str, ...] = (),
+    metrics: Mapping[str, Any] | None = None,
+    artifact_paths: tuple[str, ...] = (),
+    software_versions: Mapping[str, str] | None = None,
 ) -> dict:
-    """Run selected stages; write a JSON summary under ``runs/<run_id>/``."""
+    """Run selected stages and write a summary plus provenance manifest."""
 
     project_root = project_root.resolve()
+    started_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
     profile = get_profile(profile_name)
     stages = _select_stages(
         profile,
@@ -82,11 +99,15 @@ def run_harness(
     )
 
     run_id = run_id or time.strftime("%Y%m%d_%H%M%S")
+    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]*", run_id):
+        raise ValueError("Run ID may contain only letters, numbers, dots, underscores, and hyphens.")
+    source_state = capture_source_state(project_root)
     run_dir = project_root / "runs" / f"harness_{profile.name}_{run_id}"
     run_dir.mkdir(parents=True, exist_ok=True)
 
     results: list[StageResult] = []
     for stage in stages:
+        stage_started = time.perf_counter()
         if dry_run or stage.command is None:
             detail = {
                 "command": list(stage.command) if stage.command else None,
@@ -105,6 +126,7 @@ def run_harness(
                     detail=detail,
                 )
             )
+            results[-1].detail["duration_seconds"] = round(time.perf_counter() - stage_started, 6)
             continue
 
         result = _run_command(list(stage.command), cwd=project_root, timeout=timeout_s)
@@ -113,6 +135,7 @@ def run_harness(
             "command": list(stage.command),
             "skill": stage.skill or profile.skill,
             "skill_step": stage.skill_step,
+            "duration_seconds": round(time.perf_counter() - stage_started, 6),
         }
         results.append(result)
         if not result.ok:
@@ -135,4 +158,23 @@ def run_harness(
     summary_path = run_dir / "summary.json"
     summary_path.write_text(json.dumps(summary, indent=2), encoding="utf-8")
     summary["summary_path"] = str(summary_path)
+    manifest = build_run_manifest(
+        project_root=project_root,
+        run_id=run_id,
+        task_id=task_id,
+        started_at=started_at,
+        finished_at=datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        status="passed" if summary["ok"] else "failed",
+        seed=seed,
+        config_paths=config_paths,
+        input_paths=input_paths,
+        dataset_ids=dataset_ids,
+        metrics=metrics,
+        stages=summary["stages"],
+        artifact_paths=(*artifact_paths, summary_path),
+        software_versions=software_versions,
+        source_state=source_state,
+    )
+    manifest_path = write_run_manifest(run_dir / "manifest.json", manifest)
+    summary["manifest_path"] = str(manifest_path)
     return summary

@@ -21,6 +21,7 @@ from dotenv import load_dotenv
 from mcp.server import Server
 from mcp.types import Resource, TextContent, Tool
 from langchain_huggingface import HuggingFaceEmbeddings
+from rag_ai_scientist.project_paths import resolve_project_data_dir
 
 try:
     from langchain_chroma import Chroma
@@ -45,9 +46,13 @@ def _collection_name(project_root: Path) -> str:
 
 def _resolve_skill_path(project_root: Path, skill: str, step: str | None) -> Path:
     filename = "SKILL.md" if not step else f"{step}.md"
-    project_path = project_root / ".cursor" / "skills" / skill / filename
-    if project_path.exists():
-        return project_path
+    project_paths = [
+        resolve_project_data_dir(project_root) / "skills" / skill / filename,
+        project_root / ".cursor" / "skills" / skill / filename,
+    ]
+    for project_path in project_paths:
+        if project_path.exists():
+            return project_path
 
     packaged_path = Path(__file__).resolve().parent / "skills" / skill / filename
     if packaged_path.exists():
@@ -55,7 +60,7 @@ def _resolve_skill_path(project_root: Path, skill: str, step: str | None) -> Pat
 
     raise FileNotFoundError(
         f"Skill file not found for skill={skill!r} step={step!r}. "
-        f"Checked {project_path} and {packaged_path}"
+        f"Checked {', '.join(str(path) for path in project_paths)} and {packaged_path}"
     )
 
 
@@ -94,16 +99,21 @@ def run_mcp(*, project_root: Path) -> None:
     )
 
     project_root = project_root.resolve()
-    cursor_dir = project_root / ".cursor"
-    vector_db_dir = cursor_dir / "rag_db"
+    data_dir = resolve_project_data_dir(project_root)
+    vector_db_dir = data_dir / "rag_db"
     if not vector_db_dir.exists():
         raise SystemExit(
             f"RAG DB not found at {vector_db_dir}. Run `rag-ai-scientist setup-rag` first."
         )
 
-    load_dotenv(cursor_dir / ".env")
+    env_path = data_dir / ".env"
+    if not env_path.exists():
+        env_path = project_root / ".cursor" / ".env"
+    load_dotenv(env_path)
 
-    skills_root = project_root / ".cursor" / "skills"
+    skills_root = data_dir / "skills"
+    if not skills_root.exists():
+        skills_root = project_root / ".cursor" / "skills"
     packaged_skills_root = Path(__file__).resolve().parent / "skills"
     collection_name = _collection_name(project_root)
 

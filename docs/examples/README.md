@@ -40,7 +40,7 @@ The recommended **combined workflow** (challenge + PyPI package):
 1. Clone [whest-starterkit](https://github.com/AIcrowd/whest-starterkit) and `uv sync`
 2. `pip install rag-ai-scientist` (or `pip install -e .` from this repo)
 3. Follow **`RAG_SETUP.md`** in whest-starterkit to index challenge docs
-4. In Cursor, configure MCP with `--project-root` pointing at **whest-starterkit**
+4. Configure an MCP-compatible client with `--project-root` pointing at **whest-starterkit**
 5. Dry-run the harness: `rag-ai-scientist harness run --project-root . --profile whest --dry-run`
 6. Ask the agent: *"Use the whest-estimation-challenge skill and implement low-rank covariance propagation"*
 7. Iterate with `harness run --until-stage validate` then `score_local`
@@ -67,10 +67,27 @@ Optional step files:
 
 Resolution order:
 
-1. **`/your/project/.cursor/skills/whest-estimation-challenge/SKILL.md`** if present
-2. Else packaged copy in `site-packages/rag_ai_scientist/skills/`
+1. **`/your/project/.rag-ai-scientist/skills/whest-estimation-challenge/SKILL.md`** if present
+2. Else **`.cursor/skills/whest-estimation-challenge/SKILL.md`** for an existing project override
+3. Else the packaged copy in `site-packages/rag_ai_scientist/skills/`
 
-### Cursor MCP configuration (whest-starterkit as project root)
+### MCP client configuration (whest-starterkit as project root)
+
+In VS Code with GitHub Copilot, use `.vscode/mcp.json`:
+
+```json
+{
+  "servers": {
+    "rag-ai-scientist": {
+      "type": "stdio",
+      "command": "/absolute/path/to/venv/bin/rag-ai-scientist",
+      "args": ["mcp", "--project-root", "/absolute/path/to/whest-starterkit"]
+    }
+  }
+}
+```
+
+Other MCP clients may use a different configuration schema; run the same executable and arguments.
 
 ```json
 {

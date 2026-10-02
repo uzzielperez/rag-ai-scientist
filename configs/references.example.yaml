@@ -1,5 +1,6 @@
 indexing:
   collection_name: "rag-ai-scientist"
+  data_dir: ".rag-ai-scientist"
   chunk_size: 1500
   chunk_overlap: 200
   scientific_chunk_size: 2000

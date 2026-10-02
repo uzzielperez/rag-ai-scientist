@@ -27,7 +27,7 @@ class Profile:
     name: str
     description: str
     stages: tuple[Stage, ...]
-    skill: str
+    skill: str = ""
     default_project_hint: str = ""
     notes: str = ""
 

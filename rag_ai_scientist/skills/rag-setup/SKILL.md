@@ -1,13 +1,13 @@
 ---
 name: rag-setup
-description: Sets up local RAG dependencies and index for this repository on lxplus/CVMFS-safe Python environments. Use when the user asks to set up RAG, initialize embeddings, build/rebuild .cursor/rag_db, ingest curated notes, or run setup_rag.sh.
+description: Sets up local RAG dependencies and an index for this repository. Use when the user asks to initialize references, build or rebuild the RAG database, or connect an MCP client.
 ---
 
 # RAG Setup (Project Skill)
 
 ## Goal
 
-Prepare a working local RAG environment for this repo and build `.cursor/rag_db`.
+Prepare a local RAG environment for this project and build `.rag-ai-scientist/rag_db` (or the configured data directory). Existing `.cursor/rag_db` indexes remain supported.
 
 ## Quick Workflow (default)
 
@@ -41,7 +41,7 @@ python .cursor/index_documents.py
 After setup, verify:
 
 1. `python -m pip -V` points to `~/mcp_env/...` and not `/cvmfs/...`.
-2. `.cursor/rag_db/` exists and is populated.
+2. `.rag-ai-scientist/rag_db/` exists and is populated, or an existing `.cursor/rag_db/` is being reused.
 3. No install errors from `requirements.txt` files.
 
 ## CVMFS Guardrail
@@ -83,6 +83,6 @@ When complete, report:
 
 - Python executable used
 - pip location used
-- whether `.cursor/rag_db` was rebuilt
+- which RAG data directory was built or reused
 - whether reliability loop and/or MCP server was started
 
