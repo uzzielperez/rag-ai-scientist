@@ -5,6 +5,8 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import json
+import os
 import re
 import shutil
 from pathlib import Path
@@ -56,6 +58,58 @@ def _iter_paths(config: dict[str, Any], config_path: Path) -> list[Path]:
                 for ext in group.get("extensions", []):
                     collected.extend(sorted(p.rglob(f"*{ext}")))
     return sorted(set(collected))
+
+
+LITE_EXTENSIONS = {".md", ".markdown", ".txt", ".yaml", ".yml", ".json", ".rst"}
+CLAIMS_FILENAMES = {"claims.yaml", "claims.yml", "claims.json"}
+
+_CLAIM_VALUE = re.compile(
+    r"(?P<value>[-+]?\d[\d,]*\.?\d*(?:[eE][-+]?\d+)?)"
+    r"\s*(?:[\u00b1±]\s*(?P<unc>[\d.]+))?"
+)
+
+
+def _extract_claims(path: Path, text: str) -> list[tuple[str, dict[str, Any]]]:
+    """Turn a claims.yaml or claims.json file into one chunk per claim.
+
+    Semantic search over whole documents is the wrong tool for numbers: each
+    claim becomes its own retrievable chunk (source_type=claim) carrying
+    quantity, value, uncertainty and source.
+    """
+    claims: list[dict[str, Any]] = []
+    try:
+        if path.suffix.lower() in {".yaml", ".yml"}:
+            raw = yaml.safe_load(text)
+        elif path.suffix.lower() == ".json":
+            raw = json.loads(text)
+        else:
+            return []
+    except Exception:
+        return []
+    if isinstance(raw, dict):
+        raw = raw.get("claims", [])
+    if not isinstance(raw, list):
+        return []
+    for entry in raw:
+        if isinstance(entry, dict):
+            claims.append(entry)
+    chunks: list[tuple[str, dict[str, Any]]] = []
+    for claim in claims:
+        quantity = str(claim.get("quantity", claim.get("name", "unknown")))
+        match = _CLAIM_VALUE.search(str(claim.get("value", "")))
+        meta: dict[str, Any] = {"claim_quantity": quantity}
+        if match:
+            meta["claim_value"] = match.group("value").replace(",", "")
+            if match.group("unc"):
+                meta["claim_unc"] = match.group("unc")
+        for field in ("source", "candidate_step", "status", "tolerance"):
+            if claim.get(field) is not None:
+                meta[f"claim_{field}"] = str(claim[field])[:200]
+        line = f"{quantity}: {claim.get('value', '?')}"
+        if claim.get("source"):
+            line += f" [source: {claim['source']}]"
+        chunks.append((line, meta))
+    return chunks
 
 
 def _file_hash(path: Path) -> str:
@@ -179,6 +233,44 @@ def _create_chunks(
     return docs
 
 
+def _build_lexical_documents(paths: list[Path], tier: str) -> list[dict[str, Any]]:
+    """Lite tier without Chroma: one dict per chunk, JSONL-serializable."""
+    entries: list[dict[str, Any]] = []
+    for path in paths:
+        if tier == "lite" and path.suffix.lower() not in LITE_EXTENSIONS:
+            continue
+        doc_hash = _file_hash(path)
+        if path.name in CLAIMS_FILENAMES or path.stem in CLAIMS_FILENAMES:
+            raw = path.read_text(encoding="utf-8", errors="replace")
+            for line, claim_meta in _extract_claims(path, raw):
+                entries.append({
+                    "file": path.name,
+                    "doc_path": str(path),
+                    "doc_hash": doc_hash,
+                    "source_type": "claim",
+                    "text": line,
+                    **claim_meta,
+                })
+            continue
+        text = _extract_text(path)
+        if not text:
+            continue
+        source_type, doc_category = _classify_document(path, {})
+        for idx, chunk in enumerate(text.split("\n\n")):
+            chunk = chunk.strip()
+            if chunk:
+                entries.append({
+                    "file": path.name,
+                    "doc_path": str(path),
+                    "doc_hash": doc_hash,
+                    "source_type": source_type,
+                    "doc_category": doc_category,
+                    "chunk_index": idx,
+                    "text": chunk,
+                })
+    return entries
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Index references into Chroma.")
     parser.add_argument("--config", required=True)
@@ -187,6 +279,12 @@ def main() -> None:
     parser.add_argument("--chunk-size", type=int, default=1500)
     parser.add_argument("--chunk-overlap", type=int, default=200)
     parser.add_argument("--collection-name", default="")
+    parser.add_argument(
+        "--tier",
+        choices=("full", "lite"),
+        default="full",
+        help="lite: markdown/text/config files only, no PDF extraction.",
+    )
     args = parser.parse_args()
 
     config_path = Path(args.config).resolve()
@@ -195,6 +293,7 @@ def main() -> None:
 
     indexing_cfg = config.get("indexing", {})
     collection_name = args.collection_name or indexing_cfg.get("collection_name", "rag-ai-scientist")
+    tier = str(getattr(args, "tier", "full") or "full").lower()
     chunk_size = int(indexing_cfg.get("chunk_size", args.chunk_size))
     chunk_overlap = int(indexing_cfg.get("chunk_overlap", args.chunk_overlap))
     scientific_chunk_size = int(indexing_cfg.get("scientific_chunk_size", 2000))
@@ -217,8 +316,38 @@ def main() -> None:
     if not paths:
         raise SystemExit("No indexable paths found in config.")
 
+    if tier == "lite" and os.environ.get("RAG_LITE_NO_CHROMA", "") == "1":
+        entries = _build_lexical_documents(paths, tier="lite")
+        if not entries:
+            raise SystemExit("No readable documents found after extraction.")
+        out_file = out_dir / "chunks.jsonl"
+        with out_file.open("w", encoding="utf-8") as handle:
+            for entry in entries:
+                handle.write(json.dumps(entry, ensure_ascii=True) + "\n")
+        print(f"Lite tier: wrote {len(entries)} chunks to {out_file} (no embeddings, no Chroma).")
+        return
+
     documents: list[Document] = []
     for path in paths:
+        if tier == "lite" and path.suffix.lower() not in LITE_EXTENSIONS:
+            continue
+        if path.name in CLAIMS_FILENAMES or path.stem in CLAIMS_FILENAMES:
+            raw = path.read_text(encoding="utf-8", errors="replace")
+            for line, claim_meta in _extract_claims(path, raw):
+                documents.append(
+                    Document(
+                        page_content=line,
+                        metadata={
+                            "file": path.name,
+                            "doc_path": str(path),
+                            "doc_hash": _file_hash(path),
+                            "source_type": "claim",
+                            "doc_category": "claims",
+                            **claim_meta,
+                        },
+                    )
+                )
+            continue
         text = _extract_text(path)
         if not text:
             continue

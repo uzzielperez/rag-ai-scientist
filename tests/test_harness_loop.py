@@ -169,6 +169,75 @@ class PlanTests(unittest.TestCase):
 
 
 class GateTests(unittest.TestCase):
+    def _context(self, root):
+        config = load_config(project_root=root)
+        run = RunDir.create(root, "t")
+        return GateContext(run=run, config=config, plan=None, skills=[]), run
+
+    def test_scalar_sigma_gate(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            context, run = self._context(_real_root(tmp))
+            (run.root / "sel.json").write_text(
+                json.dumps({"signal_efficiency": 0.2140}), encoding="utf-8"
+            )
+            spec = GateSpec(
+                id="eff", type="scalar_sigma",
+                params={"path": "sel.json", "key": "signal_efficiency",
+                        "reference": 0.213, "reference_unc": 0.004, "tolerance": 2.0},
+                description="?",
+            )
+            self.assertTrue(run_gate(spec, context).passed)
+            spec_bad = GateSpec(
+                id="eff2", type="scalar_sigma",
+                params={"path": "sel.json", "key": "signal_efficiency",
+                        "reference": 0.213, "reference_unc": 0.0005},
+                description="?",
+            )
+            self.assertFalse(run_gate(spec_bad, context).passed)
+            spec_nounc = GateSpec(
+                id="eff3", type="scalar_sigma",
+                params={"path": "sel.json", "key": "signal_efficiency", "reference": 0.213},
+                description="?",
+            )
+            self.assertFalse(run_gate(spec_nounc, context).passed)
+
+    def test_distribution_gate_chi2_and_ks(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            context, run = self._context(_real_root(tmp))
+            (run.root / "meas.json").write_text(
+                json.dumps({"h": {"bins": [10, 20, 30, 20, 10]}}), encoding="utf-8"
+            )
+            (run.root / "ref.json").write_text(
+                json.dumps({"h": {"bins": [11, 19, 31, 21, 9]}}), encoding="utf-8"
+            )
+            chi2 = GateSpec(
+                id="d1", type="distribution",
+                params={"path": "meas.json", "key": "h", "reference_path": "ref.json",
+                        "reference_key": "h", "test": "chi2", "tolerance": 0.05},
+                description="?",
+            )
+            self.assertTrue(run_gate(chi2, context).passed)
+            (run.root / "bad.json").write_text(
+                json.dumps({"h": {"bins": [0, 0, 100, 0, 0]}}), encoding="utf-8"
+            )
+            ks_bad = GateSpec(
+                id="d2", type="distribution",
+                params={"path": "bad.json", "key": "h", "reference_path": "ref.json",
+                        "reference_key": "h", "test": "ks", "tolerance": 0.05},
+                description="?",
+            )
+            self.assertFalse(run_gate(ks_bad, context).passed)
+
+    def test_negative_control_gate(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            context, run = self._context(_real_root(tmp))
+            (run.root / "ctrl.json").write_text(json.dumps({"passed": False}), encoding="utf-8")
+            spec = GateSpec(id="nc", type="negative_control", params={"path": "ctrl.json"}, description="?")
+            self.assertTrue(run_gate(spec, context).passed)
+            (run.root / "ctrl2.json").write_text(json.dumps({"passed": True}), encoding="utf-8")
+            spec2 = GateSpec(id="nc2", type="negative_control", params={"path": "ctrl2.json"}, description="?")
+            self.assertFalse(run_gate(spec2, context).passed)
+
     def test_unknown_gate_type_is_a_failure_not_a_pass(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = _real_root(tmp)
@@ -305,10 +374,15 @@ class RasCliTests(unittest.TestCase):
         with self.assertRaises(SystemExit):
             build_parser().parse_args(["skills", "show"])
 
-    def test_no_profiles_ship_by_default(self):
-        from rag_ai_scientist.harness import list_profiles
+    def test_dali_profile_ships_by_default(self):
+        from rag_ai_scientist.harness import get_profile, list_profiles
 
-        self.assertEqual(list_profiles(), [])
+        self.assertIn("dali", [p.name for p in list_profiles()])
+        profile = get_profile("dali")
+        self.assertEqual(
+            profile.stage_names(),
+            ["setup", "index", "claims", "reconcile", "build", "run", "report"],
+        )
 
 
 if __name__ == "__main__":

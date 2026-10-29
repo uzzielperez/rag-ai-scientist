@@ -451,6 +451,221 @@ def run_all_gates(plan: Plan, context: GateContext, *, only: list[str] | None = 
     return results
 
 
+def gate_scalar_sigma(spec: GateSpec, context: GateContext) -> GateResult:
+    """Measured value vs a reference, deviation in units of sigma.
+
+    params: path, key, reference, reference_unc (or unc), tolerance (sigma,
+    default 2.0). A missing uncertainty fails: an unverifiable tolerance is a
+    ``needs_review`` claim, never a silent pass.
+    """
+    raw_path = str(spec.params.get("path", ""))
+    key = str(spec.params.get("key", ""))
+    target = context.resolve(raw_path)
+    if not target.exists():
+        return GateResult(spec.id, "", spec.type, False, f"{raw_path} does not exist")
+    data = _read_json(target)
+    if key not in data:
+        return GateResult(spec.id, "", spec.type, False, f"{raw_path} is missing key {key!r}")
+    try:
+        measured_value = float(data[key])
+        reference = float(spec.params["reference"])
+        unc = float(spec.params.get("reference_unc", spec.params.get("unc")))
+    except (KeyError, TypeError, ValueError) as exc:
+        return GateResult(
+            spec.id, "", spec.type, False,
+            f"scalar_sigma needs numeric key/reference/reference_unc ({exc})",
+            proposed_fix="Never invent a reference or uncertainty; extract it from the source or mark needs_review.",
+        )
+    if unc <= 0:
+        return GateResult(spec.id, "", spec.type, False, "reference_unc must be > 0")
+    tolerance = float(spec.params.get("tolerance", 2.0))
+    deviation = abs(measured_value - reference) / unc
+    passed = deviation <= tolerance
+    return GateResult(
+        gate_id=spec.id,
+        step_id="",
+        type=spec.type,
+        passed=passed,
+        detail=(
+            f"{key}={measured_value:g} vs reference {reference:g}±{unc:g}: "
+            f"{deviation:.2f}σ (tolerance {tolerance:g}σ)"
+        ),
+        measured={"measured": measured_value, "reference": reference, "unc": unc,
+                  "deviation_sigma": deviation, "tolerance": tolerance},
+    )
+
+
+def _histogram(path: Path, key: str) -> list[float]:
+    """Read a histogram from JSON ({path}:{key}) as a list of bin counts."""
+    data = _read_json(path)
+    node: Any = data
+    for part in key.split(".") if key else []:
+        node = node[part]
+    if not isinstance(node, dict) or "bins" not in node:
+        raise ValueError(f"{key} must name an object with a 'bins' list")
+    bins = [float(v) for v in node["bins"]]
+    if not bins:
+        raise ValueError("histogram bins are empty")
+    return bins
+
+
+def gate_distribution(spec: GateSpec, context: GateContext) -> GateResult:
+    """Measured histogram vs a reference histogram, χ² or KS test.
+
+    params: path, key, reference_path, reference_key, test (chi2|ks),
+    tolerance (minimum p-value, default 0.05). χ² uses Poisson-ish expected
+    counts with empty bins merged; KS uses empirical CDFs.
+    """
+    import math as _math
+
+    test = str(spec.params.get("test", "chi2")).lower()
+    min_p = float(spec.params.get("tolerance", 0.05))
+    measured_path = context.resolve(str(spec.params.get("path", "")))
+    reference_path = context.resolve(str(spec.params.get("reference_path", "")))
+    if not measured_path.exists() or not reference_path.exists():
+        return GateResult(spec.id, "", spec.type, False, "measured or reference histogram file missing")
+    try:
+        obs = _histogram(measured_path, str(spec.params.get("key", "")))
+        exp = _histogram(reference_path, str(spec.params.get("reference_key", spec.params.get("key", ""))))
+    except (KeyError, TypeError, ValueError) as exc:
+        return GateResult(spec.id, "", spec.type, False, f"histograms unreadable: {exc}")
+
+    if test == "chi2":
+        if len(obs) != len(exp):
+            return GateResult(spec.id, "", spec.type, False, f"bin count mismatch: {len(obs)} vs {len(exp)}")
+        statistic = 0.0
+        degrees = 0
+        for o, e in zip(obs, exp):
+            expected = max(e, 1e-12)
+            if expected < 5:
+                continue
+            statistic += (o - expected) ** 2 / expected
+            degrees += 1
+        if degrees == 0:
+            return GateResult(spec.id, "", spec.type, False, "no bins with expected >= 5; χ² undefined")
+        p_value = _chi2_sf(statistic, degrees)
+    elif test == "ks":
+        cdf_o = _ecdf(obs)
+        cdf_e = _ecdf(exp)
+        grid = sorted(set(range(max(len(obs), len(exp)) + 1)))
+        d_max = max(abs(_interp(grid_step, grid, cdf_o) - _interp(grid_step, grid, cdf_e)) for grid_step in grid)
+        n_eff = len(obs) * len(exp) / (len(obs) + len(exp))
+        lam = (_math.sqrt(n_eff) + 0.12 + 0.11 / _math.sqrt(n_eff)) * d_max
+        p_value = 2.0 * sum((-1.0) ** (k - 1) * _math.exp(-2.0 * k * k * lam * lam) for k in range(1, 101))
+        p_value = min(max(p_value, 0.0), 1.0)
+        statistic = d_max
+    else:
+        return GateResult(spec.id, "", spec.type, False, f"unknown test {test!r}; use chi2 or ks")
+
+    passed = p_value >= min_p
+    return GateResult(
+        gate_id=spec.id,
+        step_id="",
+        type=spec.type,
+        passed=passed,
+        detail=f"{test}: statistic={statistic:.4g}, p-value={p_value:.4g} (min {min_p:g})",
+        measured={"test": test, "statistic": statistic, "p_value": p_value, "min_p": min_p},
+        proposed_fix="Compare on the same input; if the shape genuinely differs, fix the config, not the reference.",
+    )
+
+
+def _chi2_sf(statistic: float, degrees: int) -> float:
+    """Survival function of χ² via the regularized upper incomplete gamma."""
+    import math as _math
+
+    a, x = degrees / 2.0, statistic / 2.0
+    if x <= 0:
+        return 1.0
+    if x < a + 1.0:
+        term = 1.0 / a
+        total = term
+        for n in range(1, 500):
+            term *= x / (a + n)
+            total += term
+            if abs(term) < abs(total) * 1e-12:
+                break
+        lower = total * _math.exp(-x + a * _math.log(x) - _math.lgamma(a))
+        return max(0.0, min(1.0, 1.0 - lower))
+    # continued fraction (Lentz) for the upper incomplete gamma
+    tiny = 1e-300
+    c, d = 1.0, 1.0 / (x + 1.0 - a)
+    h = d
+    for i in range(1, 500):
+        an = -i * (i - a)
+        b = x + 2.0 * i + 1.0 - a
+        d = 1.0 / (b + an * d) if abs(b + an * d) > tiny else tiny
+        c = b + an / c if abs(b + an / c) > tiny else tiny
+        delta = c * d
+        h *= delta
+        if abs(delta - 1.0) < 1e-12:
+            break
+    return max(0.0, min(1.0, _math.exp(-x + a * _math.log(x) - _math.lgamma(a)) * h))
+
+
+def _ecdf(bins: list[float]) -> list[float]:
+    total = sum(bins) or 1.0
+    cdf, running = [], 0.0
+    for value in bins:
+        running += value
+        cdf.append(running / total)
+    return cdf
+
+
+def _interp(x: int, grid: list[int], values: list[float]) -> float:
+    if x <= grid[0]:
+        return values[0]
+    if x >= grid[-1]:
+        return values[-1]
+    lo, hi = 0, len(grid) - 1
+    while lo + 1 < hi:
+        mid = (lo + hi) // 2
+        if grid[mid] <= x:
+            lo = mid
+        else:
+            hi = mid
+    span = grid[hi] - grid[lo] or 1
+    frac = (x - grid[lo]) / span
+    return values[lo] + frac * (values[hi] - values[lo])
+
+
+def gate_negative_control(spec: GateSpec, context: GateContext) -> GateResult:
+    """A check that must FAIL when the pipeline is broken.
+
+    params: path, key (optional). With a key, the nested ``passed`` field of
+    the object at key is read; without one, the top-level ``passed`` field is
+    used. The gate passes only when the control reports failure.
+    """
+    raw_path = str(spec.params.get("path", ""))
+    key = str(spec.params.get("key", ""))
+    expect = str(spec.params.get("expect", "fail")).lower()
+    if expect != "fail":
+        return GateResult(spec.id, "", spec.type, False, "negative_control only supports expect: fail")
+    target = context.resolve(raw_path)
+    if not target.exists():
+        return GateResult(spec.id, "", spec.type, False, f"{raw_path} does not exist")
+    data = _read_json(target)
+    node: Any = data
+    for part in key.split(".") if key else []:
+        if not isinstance(node, dict) or part not in node:
+            return GateResult(spec.id, "", spec.type, False, f"{raw_path} is missing key {key!r}")
+        node = node[part]
+    if not isinstance(node, dict) or "passed" not in node:
+        return GateResult(spec.id, "", spec.type, False, f"{raw_path}:{key or '<root>'} needs a 'passed' field")
+    control_passed = bool(node["passed"])
+    return GateResult(
+        gate_id=spec.id,
+        step_id="",
+        type=spec.type,
+        passed=not control_passed,
+        detail=(
+            "negative control failed as expected" if not control_passed
+            else "negative control PASSED — the pipeline cannot detect a broken input"
+        ),
+        measured={"control_passed": control_passed},
+        proposed_fix="Break the declared input (shuffle/zero) so the control must fail; a control that passes proves nothing.",
+    )
+
+
 GATE_TYPES: dict[str, Any] = {
     "file_exists": gate_file_exists,
     "json_keys": gate_json_keys,
@@ -462,4 +677,7 @@ GATE_TYPES: dict[str, Any] = {
     "golden_tiers": gate_golden_tiers,
     "markdown_sections": gate_markdown_sections,
     "skill_gate_consistency": gate_skill_gate_consistency,
+    "scalar_sigma": gate_scalar_sigma,
+    "distribution": gate_distribution,
+    "negative_control": gate_negative_control,
 }

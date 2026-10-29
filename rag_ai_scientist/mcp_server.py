@@ -5,6 +5,7 @@ import asyncio
 import json
 import logging
 import os
+import subprocess
 import sys
 from pathlib import Path
 
@@ -79,7 +80,33 @@ def _format_extractive(docs: list, title: str = "Results") -> str:
         lines.append(f"{idx}. {source}")
         lines.append(snippet)
         lines.append("")
-    return "\n".join(lines).strip()
+    return _membrane_filter("\n".join(lines).strip())
+
+
+def _membrane_filter(text: str) -> str:
+    """Redact quoted output through the workspace membrane when present.
+
+    If the project ships scripts/membrane_filter.py (membrane skill), every
+    tool's text output is piped through it so no secrets or identifiable
+    ntuple content leave the workspace boundary. Without the script the text
+    passes through unchanged.
+    """
+    script = _MEMB_SCRIPT
+    if script is None or not script.exists() or not text:
+        return text
+    try:
+        proc = subprocess.run(
+            [sys.executable, str(script)],
+            input=text,
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+    except Exception:
+        return text
+    if proc.returncode != 0 or not proc.stdout.strip():
+        return "[membrane] output withheld: membrane_filter.py failed"
+    return proc.stdout
 
 
 def _try_init_llm() -> object | None:
@@ -91,12 +118,17 @@ def _try_init_llm() -> object | None:
     return ChatGroq(api_key=groq_key, temperature=0, model="llama-3.3-70b-versatile")
 
 
+_MEMB_SCRIPT: Path | None = None
+
+
 def run_mcp(*, project_root: Path) -> None:
+    global _MEMB_SCRIPT
     logging.basicConfig(
         level=logging.INFO,
         format="[%(levelname)s] %(message)s",
         stream=sys.stderr,
     )
+    _MEMB_SCRIPT = project_root.resolve() / "scripts" / "membrane_filter.py"
 
     project_root = project_root.resolve()
     data_dir = resolve_project_data_dir(project_root)
@@ -155,6 +187,19 @@ def run_mcp(*, project_root: Path) -> None:
                     "type": "object",
                     "properties": {"topic": {"type": "string"}, "k": {"type": "number"}},
                     "required": ["topic"],
+                },
+            ),
+            Tool(
+                name="search_claims",
+                description=(
+                    "Search claim chunks (source_type=claim) extracted from claims.yaml/json: "
+                    "quantity, value, uncertainty, source. Prefer this over semantic "
+                    "search for reference numbers."
+                ),
+                inputSchema={
+                    "type": "object",
+                    "properties": {"query": {"type": "string"}, "k": {"type": "number"}},
+                    "required": ["query"],
                 },
             ),
             Tool(
@@ -289,7 +334,7 @@ def run_mcp(*, project_root: Path) -> None:
                 return [
                     TextContent(
                         type="text",
-                        text=f"{response.content}\n\nSources: {', '.join(sources)}",
+                        text=_membrane_filter(f"{response.content}\n\nSources: {', '.join(sources)}"),
                     )
                 ]
 
@@ -302,6 +347,24 @@ def run_mcp(*, project_root: Path) -> None:
                 if not docs:
                     docs = await asyncio.to_thread(vectorstore.similarity_search, topic, k=min(3, k))
                 return [TextContent(type="text", text=_format_extractive(docs, "Paper matches"))]
+
+            if name == "search_claims":
+                query = arguments["query"]
+                k = int(arguments.get("k", 8))
+                docs = await asyncio.to_thread(
+                    vectorstore.similarity_search, query, k=k, filter={"source_type": "claim"}
+                )
+                if not docs:
+                    return [
+                        TextContent(
+                            type="text",
+                            text=(
+                                "No claims indexed. Extract reference numbers into "
+                                "state/claims.yaml (DALI stage 'claims') and re-run setup-rag."
+                            ),
+                        )
+                    ]
+                return [TextContent(type="text", text=_format_extractive(docs, "Claim matches"))]
 
             if name == "retrieve_documents":
                 query = arguments["query"]
@@ -316,13 +379,13 @@ def run_mcp(*, project_root: Path) -> None:
                             "text": doc.page_content,
                         }
                     )
-                return [TextContent(type="text", text=json.dumps(payload, indent=2, ensure_ascii=True))]
+                return [TextContent(type="text", text=_membrane_filter(json.dumps(payload, indent=2, ensure_ascii=True)))]
 
             if name == "get_skill":
                 skill = arguments["skill"]
                 step = arguments.get("step")
                 content = _load_skill_text(project_root, skill=skill, step=step)
-                return [TextContent(type="text", text=content)]
+                return [TextContent(type="text", text=_membrane_filter(content))]
 
             if name == "harness_list_profiles":
                 from rag_ai_scientist.harness import list_profiles

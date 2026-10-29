@@ -126,6 +126,9 @@ def cmd_setup_rag(args: argparse.Namespace) -> None:
         cmd.extend(["--chunk-size", str(args.chunk_size)])
     if args.chunk_overlap:
         cmd.extend(["--chunk-overlap", str(args.chunk_overlap)])
+    if getattr(args, "tier", "full") == "lite":
+        cmd.append("--tier")
+        cmd.append("lite")
 
     subprocess.run(cmd, check=True)
     print(f"Built RAG DB at: {out_dir}")
@@ -404,6 +407,13 @@ def main() -> None:
     p_setup.add_argument("--collection-name", default="", help="Override collection name.")
     p_setup.add_argument("--chunk-size", type=int, default=0)
     p_setup.add_argument("--chunk-overlap", type=int, default=0)
+    p_setup.add_argument(
+        "--tier",
+        choices=("full", "lite"),
+        default="full",
+        help="lite: index markdown/text/config + claims files only (no PDF extraction); "
+        "full: everything including PDFs via embeddings.",
+    )
     p_setup.set_defaults(func=cmd_setup_rag)
 
     p_mcp = sub.add_parser("mcp", help="Start the stdio MCP server for any compatible client.")
