@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rag-ai-scientist"
-version = "0.1.9"
+version = "0.1.10"
 description = "Installable RAG + MCP skills framework with challenge harness and Overleaf sync."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -36,6 +36,7 @@ dependencies = [
   "pysqlite3-binary>=0.5; sys_platform == \"linux\"",
   "umap-learn>=0.5",
   "matplotlib>=3.7",
+  "langgraph>=1.0,<2",
 ]
 
 [project.urls]
@@ -47,6 +48,7 @@ Issues = "https://github.com/uzzielperez/rag-ai-scientist/issues"
 [project.scripts]
 rag-ai-scientist = "rag_ai_scientist.cli:main"
 rag-ai-scientist-handoff = "rag_ai_scientist.handoff_bundle:main"
+dali-onboard = "rag_ai_scientist.dali_onboard:run_interactive_cli"
 
 [tool.setuptools]
 include-package-data = true

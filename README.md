@@ -91,8 +91,58 @@ Isolation tip: use a dedicated venv (e.g. `~/venvs/rag-ai-scientist`) instead of
 | **`rag-ai-scientist-handoff create` / `apply`** | Lightweight standalone handoff CLI; works without installing RAG/ML dependencies. |
 | **`harness list` / `harness run`** | Challenge loops (default profile: **`whest`**). |
 | **`overleaf list-projects` / `status` / `sync`** | Inspect / push Overleaf projects via Git integration. |
+| **`onboard`** (or `dali-onboard`) | Interactive DALI onboarding state machine (LangGraph): paper + codebase in, tested RAG brain and a validated, human-gated execution plan out. |
 
 Common flags: **`--project-root`**, **`--force`** (rebuild index), **`--references-dir`** (with `init-references`).
+
+---
+
+## DALI onboarding (`onboard` / `dali-onboard`)
+
+**DALI scaffolds your physics analyses** — the boilerplate, plumbing and
+bookkeeping — so you can spend more time on the physics. Nothing is a black
+box: the code it generates and the pipeline (the *pipes*) it runs are yours to
+customise and inspect at every step.
+
+One command takes a new project from *paper + codebase* to a working, verified
+setup. It runs a LangGraph state machine with two human gates and a bounded
+execute → validate → correct loop:
+
+```
+inputs → embed+chunk → build RAG brain → test brain (human gate)
+       → plan → [execute → validate → correct]* → smoke test (human gate) → done
+```
+
+```bash
+pip install rag-ai-scientist          # langgraph comes with it (Python >= 3.10)
+dali-onboard --workspace ~/my-analysis
+# equivalent: rag-ai-scientist onboard --workspace ~/my-analysis
+```
+
+When it starts, DALI greets you, confirms you are in the right workspace
+(resolved path, brain/checkpoint locations, free disk space), and offers an
+opt-in **learn-more menu** before the session begins:
+
+| Topic | What it covers |
+|---|---|
+| Examples & tutorials | `docs/GETTING_STARTED.md`, `docs/examples/`, a first demo run |
+| Skills | what DALI can do, and how to add your own (`skills/_template/`) |
+| Tools | what DALI can run over MCP, and how to register a new one |
+| The pipes | the pipeline as snap-together blocks (think Minecraft/Roblox), how to extend a step, and how to contribute a reusable pipe back as a skill |
+
+- **Deterministic nodes do the work** (chunking, chroma brain at
+  `.dali/brain`, shell execution); the LLM (Groq via `GROQ_API_KEY`, or
+  OpenAI-compatible) is only used in `plan` and `correct`, and every LLM
+  proposal is still executed and validated by the harness — never trusted.
+- The **brain test gate** answers your own question against the fresh index
+  and shows real hits before you approve; `rebuild` loops back.
+- Every node writes a verifiable check; the final report lists
+  `PASS/FAIL` + evidence per node. Sessions checkpoint to
+  `.dali/onboard/<thread>.json` and resume if you exit mid-flow.
+- `autonomous: no` (default) asks before each step run; up to
+  `MAX_LOOPS = 5` correction attempts per step before escalating to you.
+- The intro, workspace confirmation and learn-more menu are skipped when stdin
+  is not a terminal, or with `--yes` / `-y`.
 
 ---
 

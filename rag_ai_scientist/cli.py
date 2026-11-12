@@ -315,6 +315,7 @@ def cmd_self_test(args: argparse.Namespace) -> None:
             [sys.executable, "-m", "rag_ai_scientist.cli", "mcp", "--help"],
             [sys.executable, "-m", "rag_ai_scientist.cli", "handoff", "create", "--help"],
             [sys.executable, "-m", "rag_ai_scientist.cli", "handoff", "apply", "--help"],
+            [sys.executable, "-m", "rag_ai_scientist.cli", "onboard", "--help"],
             [sys.executable, "-m", "rag.index_documents", "--help"],
         ):
             try:
@@ -326,6 +327,18 @@ def cmd_self_test(args: argparse.Namespace) -> None:
     if not all(checks):
         raise SystemExit(1)
     print("Self-test passed.")
+
+
+def cmd_onboard(args: argparse.Namespace) -> None:
+    try:
+        import langgraph  # noqa: F401
+    except ImportError as exc:
+        raise SystemExit(
+            "The onboard command needs langgraph (Python >= 3.10): pip install langgraph"
+        ) from exc
+    from rag_ai_scientist.dali_onboard import run_interactive
+
+    run_interactive(workspace=args.workspace, thread_id=args.thread_id)
 
 
 def cmd_handoff_apply(args: argparse.Namespace) -> None:
@@ -446,6 +459,11 @@ def main() -> None:
 
     p_self_test = sub.add_parser("self-test", help="Run fast CLI/package self-tests.")
     p_self_test.set_defaults(func=cmd_self_test)
+
+    p_onboard = sub.add_parser("onboard", help="Interactive DALI onboarding state machine (LangGraph).")
+    p_onboard.add_argument("--workspace", default=".", help="Workspace root where .dali/brain is built.")
+    p_onboard.add_argument("--thread-id", default="dali-onboard", help="Checkpoint thread id.")
+    p_onboard.set_defaults(func=cmd_onboard)
 
     p_handoff = sub.add_parser("handoff", help="Inspect and resume collaborator handoff bundles.")
     handoff_sub = p_handoff.add_subparsers(dest="handoff_cmd", required=True)
