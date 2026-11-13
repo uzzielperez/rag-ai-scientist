@@ -95,6 +95,25 @@ Isolation tip: use a dedicated venv (e.g. `~/venvs/rag-ai-scientist`) instead of
 | **`harness list` / `harness run`** | Legacy profile loops — no profiles ship by default (register your own). |
 | **`overleaf list-projects` / `status` / `sync`** | Inspect / push Overleaf projects via Git integration. |
 | **`overleaf install-node-server`** | Install the vendored Node Overleaf MCP server (full read/write/commit/push tools) — no separate download needed. |
+| **`dali-onboard`** | DALI onboarding state machine (LangGraph): paper + codebase → RAG brain → LLM plan → execute/validate/correct loop → smoke test, with a human gate at every step. |
+
+### `dali-onboard` flow
+
+```
+START → get_inputs              you give paper + code paths
+      → check_agent             is the DALI agent installed? [install|continue|abort]
+      → fetch_inputs            fetches; CERN GitLab needs SSO/PAT — guided retry
+      → choose_embedding_model  small/base/large, recommended from your CPU/RAM/GPU
+      → embed_and_chunk → build_brain → test_brain   you approve the brain
+      → make_plan               LLM proposes, you approve
+      → execute ⇄ validate/correct   per-step loop, human gate, max 5 tries
+      → smoke_test → END
+```
+
+Sessions checkpoint under `.dali/onboard/` and resume across invocations.
+The harness is optimized for **opencode** (`/agent dali`) and **Claude Code**
+(`@dali`); Cursor/Copilot/VS Code get a callable prompt with the same
+instructions. Membrane preflight: say **membrane ON** / **membrane OFF**.
 
 Common flags: **`--project-root`**, **`--force`** (rebuild index), **`--references-dir`** (with `init-references`).
 
