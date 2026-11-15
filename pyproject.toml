@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rag-ai-scientist"
-version = "0.2.6"
+version = "0.2.7"
 description = "Installable RAG + MCP skills framework with a domain-free retrieval harness and Overleaf sync."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -37,6 +37,7 @@ dependencies = [
   "umap-learn>=0.5",
   "matplotlib>=3.7",
   "langgraph>=1.0",
+  "nbformat>=5.9",
 ]
 
 [project.urls]
@@ -50,6 +51,10 @@ rag-ai-scientist = "rag_ai_scientist.cli:main"
 rag-ai-scientist-handoff = "rag_ai_scientist.handoff_bundle:main"
 ras = "rag_ai_scientist.ras_cli:main"
 dali-onboard = "rag_ai_scientist.dali_onboard:run_interactive_cli"
+dali-onboard-demo = "rag_ai_scientist.dali_onboard:run_demo_cli"
+dali-create-notebook = "rag_ai_scientist.sync_notebook:main"
+dali-notebook-sync = "rag_ai_scientist.sync_notebook_cli:main"
+dali-flow-diagram = "rag_ai_scientist.flow_diagram:main"
 
 [tool.setuptools]
 include-package-data = true

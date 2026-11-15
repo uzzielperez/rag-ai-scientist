@@ -1,11 +1,28 @@
 """DALI onboarding as a LangGraph state machine.
 
-Flow: inputs -> embed+chunk -> build RAG brain -> test brain (human gate)
-      -> plan -> [execute -> validate -> correct]* -> smoke test (human gate) -> done
+Flow: inputs -> check agent -> fetch inputs -> choose embedding model
+      -> embed+chunk -> build RAG brain -> test brain (human gate)
+      -> summarize the analysis from the brain (human gate)
+      -> plan the DAG + golden benchmarks -> render WORKFLOW.md / pipeline.yaml
+         (human gate) -> [execute -> validate -> correct]* -> smoke test -> done
 
 Deterministic nodes do the work (they reuse the rag-ai-scientist indexing and
-harness machinery); the LLM is only used in plan() and correct(). Every node
-writes a verifiable check into state["checks"].
+harness machinery); the LLM is only used in summarize(), plan_dag() and
+correct(), and every LLM proposal is still executed and validated by the
+harness - never trusted. Every node writes a verifiable check into
+state["checks"].
+
+After the plan gate the workflow is written out as plain-language artifacts the
+human can read and edit:
+
+    WORKFLOW.md               goal, main result, reverse-engineered plan, and a
+                              table of steps with the golden benchmark per step
+    state/pipeline.yaml       machine-readable steps + checks (source of truth)
+    reports/pipeline-dag.dot  step dependency graph (dot -Tsvg)
+
+Reference numbers quoted in those artifacts are extracted from brain chunks and
+carry the doc path they were read from; nothing is invented, and a step with no
+traceable number is left to a human instead of being guessed.
 
 Requires langgraph (Python >= 3.10).
 """
@@ -82,6 +99,11 @@ class FileCheckpointSaver(MemorySaver):
         return result
 
 MAX_LOOPS = 5
+MAX_BENCHMARKS_PER_STEP = 8
+PLAIN_WORDS_RULE = (
+    "Use plain words a new collaborator can follow: short sentences, no jargon "
+    "without a one-line explanation, and always say what a number is for."
+)
 
 _CODE_SUFFIXES = {".py", ".cxx", ".cpp", ".cc", ".C", ".h", ".hpp", ".yaml", ".yml", ".toml", ".sh", ".cmake", ".txt", ".md"}
 _DOC_SUFFIXES = {".pdf", ".md", ".txt", ".tex", ".rst"}
@@ -98,7 +120,9 @@ class State(TypedDict, total=False):
     workspace: str
     brain_dir: str
     n_chunks: int
-    plan: list[dict]
+    summary: dict             # {"goal", "result", "plan"} in plain words, from the brain
+    plan: list[dict]          # DAG steps: description/command/check/depends_on/benchmarks
+    artifacts: dict           # rendered artifact name -> path
     step: int
     loops: int
     embedding_model: str        # chosen at the choose_embedding_model gate
@@ -186,9 +210,19 @@ def choose_embedding_model(state: State) -> dict:
 
 
 def _get_embeddings(state: State):
-    """One factory so brain build, probe, and query always agree on the model."""
-    from langchain_huggingface import HuggingFaceEmbeddings
+    """One factory so brain build, probe, and query always agree on the model.
+
+    DALI_EMBEDDING_CLASS="pkg.module:Name" overrides it with any object exposing
+    embed_documents/embed_query; the offline demo uses that hook so nothing has
+    to monkeypatch module globals."""
+    override = os.environ.get("DALI_EMBEDDING_CLASS", "").strip()
+    if override:
+        module_name, _, attr = override.partition(":")
+        import importlib
+
+        return getattr(importlib.import_module(module_name), attr)()
     model = state.get("embedding_model") or EMBEDDING_MODELS["small"][0]
+    from langchain_huggingface import HuggingFaceEmbeddings
     device = state.get("torch_device", "cpu")
     return HuggingFaceEmbeddings(
         model_name=model,
@@ -592,46 +626,324 @@ def _parse_json_array(text: str) -> Optional[list]:
     return data if isinstance(data, list) else None
 
 
-def make_plan(state: State) -> dict:
-    """LLM turns project goals into a linear list of verifiable steps."""
-    goals = state.get("goals", "")
-    context = _brain_context(state, goals or "What does this project do and how is it run?")
+def _parse_json_object(text: str) -> Optional[dict]:
+    text = text.strip()
+    if text.startswith("```"):
+        text = text.strip("`")
+    start, end = text.find("{"), text.rfind("}")
+    if start == -1 or end == -1:
+        return None
+    try:
+        data = json.loads(text[start : end + 1])
+    except json.JSONDecodeError:
+        return None
+    return data if isinstance(data, dict) else None
+
+
+def _ask_json(llm, prompt: str) -> Any:
+    """One LLM call, JSON in / Python out (dict or list). None on any failure."""
+    from langchain_core.messages import HumanMessage, SystemMessage
+
+    try:
+        reply = llm.invoke([
+            SystemMessage(content="Reply with valid JSON only."),
+            HumanMessage(content=prompt),
+        ])
+    except Exception as exc:
+        print(f"[llm] call failed ({exc}); continuing without it.")
+        return None
+    text = getattr(reply, "content", "") or ""
+    return _parse_json_object(text) if "{" in text else _parse_json_array(text)
+
+
+def _brain_hits(state: State, query: str, k: int = 6) -> list[tuple[str, str]]:
+    """(doc_path, text) pairs straight from the brain; [] when it is unavailable."""
+    try:
+        context = _brain_context(state, query, k=k)
+    except Exception:
+        return []
+    hits = []
+    for block in context.split("\n\n---\n"):
+        block = block.strip()
+        if not block.startswith("["):
+            continue
+        path, _, body = block.partition("]\n")
+        hits.append((path.lstrip("[").strip(), body.strip()))
+    return hits
+
+
+def _material(hits: list[tuple[str, str]], per_hit: int = 1200) -> str:
+    return "\n\n---\n".join(f"[{path}]\n{text[:per_hit]}" for path, text in hits)
+
+
+def summarize(state: State) -> dict:
+    """Read the brain and say, in plain words, what the analysis is for, which
+    result a reproduction has to land on, and how to work backwards from that
+    result to the input data. Nothing is executed here."""
+    hits = _brain_hits(
+        state,
+        "What is the physics goal of this analysis, what is the headline result "
+        "or number, and what are the analysis stages in order?",
+        k=8,
+    )
+    material = _material(hits)
+    llm = _get_llm()
+    summary: dict = {}
+    if llm is not None and material:
+        data = _ask_json(llm, (
+            "You are the DALI onboarding summariser. From the material below, write "
+            "three short plain-language blocks about this analysis.\n"
+            f"{PLAIN_WORDS_RULE}\n"
+            'Reply ONLY {"goal": str, "result": str, "plan": str} where\n'
+            '  goal   = 2-4 sentences: what the analysis is trying to measure, and why;\n'
+            '  result = 1-3 sentences: the headline number a reproduction must land on, '
+            'with units, plus anything the documents do not let us check;\n'
+            '  plan   = the route from that final number back to the raw data, one stage '
+            'per line, each line saying what that stage has to produce.\n'
+            f"Material:\n{material}"
+        ))
+        if isinstance(data, dict):
+            summary = {key: str(data[key]).strip()
+                       for key in ("goal", "result", "plan") if data.get(key)}
+    incomplete = not summary.get("goal")
+    if incomplete:
+        summary = {
+            "goal": "(no LLM key, or nothing retrievable: state the goal yourself - "
+                    "which number must this reproduction land on?)",
+            "result": summary.get("result", "(not extracted)"),
+            "plan": summary.get("plan", "(not extracted)"),
+        }
+    return {"summary": summary,
+            "checks": _check(state, "summary", not incomplete,
+                             f"goal: {summary['goal'][:200]}")}
+
+
+def approve_summary(state: State) -> dict:
+    """Human gate: is the plain-language summary right, before we plan against it?"""
+    verdict = interrupt({
+        "ask": "Is this summary of the analysis right (goal / result / route)?",
+        "gate_options": ["approve", "rebuild"],
+        "summary": state.get("summary", {}),
+    })
+    verdict = verdict.get("verdict", "approve") if isinstance(verdict, dict) else str(verdict)
+    return {"checks": _check(state, "summary_test", verdict == "approve", f"user: {verdict}")}
+
+
+_FALLBACK_PLAN = [
+    {"id": "reproduce", "description": "reproduce nominal result", "command": "",
+     "check": "human confirms output matches reference", "depends_on": [],
+     "benchmarks": []},
+    {"id": "preselect", "description": "run preselection", "command": "",
+     "check": "exit code 0 and non-empty output", "depends_on": ["reproduce"],
+     "benchmarks": []},
+    {"id": "fit", "description": "run fit", "command": "",
+     "check": "exit code 0 and converged", "depends_on": ["preselect"],
+     "benchmarks": []},
+]
+
+
+def _normalise_plan(parsed: list) -> list[dict]:
+    """Validate a proposed plan into DAG steps: unique ids, no unknown or
+    forward dependencies, benchmarks kept only when they carry a value."""
+    steps: list[dict] = []
+    seen: set[str] = set()
+    for i, raw in enumerate(parsed):
+        if not isinstance(raw, dict):
+            continue
+        step_id = str(raw.get("id") or f"step{i + 1}").strip().replace(" ", "-")
+        while step_id in seen:
+            step_id = f"{step_id}-{len(seen) + 1}"
+        seen.add(step_id)
+        benchmarks = []
+        for b in (raw.get("benchmarks") or [])[:MAX_BENCHMARKS_PER_STEP]:
+            if not isinstance(b, dict) or b.get("value") in (None, ""):
+                continue
+            benchmarks.append({
+                "quantity": str(b.get("quantity", "")).strip(),
+                "value": b.get("value"),
+                "unit": str(b.get("unit", "")).strip(),
+                "source": str(b.get("source", "")).strip() or "(no source given)",
+                "confidence": "extracted-unverified",
+            })
+        steps.append({
+            "id": step_id,
+            "description": str(raw.get("description", f"step {i + 1}")).strip(),
+            "command": str(raw.get("command", "")).strip(),
+            "check": str(raw.get("check", "exit code 0")).strip(),
+            "depends_on": [str(d).strip() for d in (raw.get("depends_on") or [])],
+            "benchmarks": benchmarks,
+        })
+    ids = {s["id"] for s in steps}
+    order: list[str] = []
+    kept: list[dict] = []
+    for s in steps:
+        # only earlier steps can be depended on: that alone keeps the graph acyclic
+        s["depends_on"] = [d for d in s["depends_on"] if d in ids and d in order]
+        order.append(s["id"])
+        kept.append(s)
+    return kept
+
+
+def plan_dag(state: State) -> dict:
+    """Turn the brain into a DAG of verifiable steps, each carrying the golden
+    benchmarks (reference number + the doc it was read from) that validate it."""
+    summary = state.get("summary", {})
+    hits = _brain_hits(
+        state,
+        "What are the analysis stages, the commands that run them, and the "
+        "reference numbers (counts, thresholds, yields, uncertainties) quoted in "
+        "the documentation for each stage?",
+        k=10,
+    )
+    material = _material(hits)
     llm = _get_llm()
     plan: list[dict] = []
-    if llm is not None:
-        from langchain_core.messages import HumanMessage, SystemMessage
-
-        prompt = (
-            "You are the DALI onboarding planner. From the project material below, produce a "
-            "linear plan of 3-7 verifiable steps to reproduce the project's nominal result. "
-            'Reply ONLY with a JSON array of objects: '
-            '[{"description": str, "command": str, "check": str}] where command is a shell '
-            "command runnable from the workspace root and check states how success is verified."
-            f"\n\nProject goals: {goals or '(ask the brain)'}\n\nMaterial:\n{context}"
-        )
-        try:
-            reply = llm.invoke([
-                SystemMessage(content="Reply with valid JSON only."),
-                HumanMessage(content=prompt),
-            ])
-            parsed = _parse_json_array(reply.content)
-            if parsed:
-                plan = [
-                    {"description": str(s.get("description", f"step {i+1}")),
-                     "command": str(s.get("command", "")),
-                     "check": str(s.get("check", "exit code 0"))}
-                    for i, s in enumerate(parsed) if isinstance(s, dict)
-                ]
-        except Exception as exc:
-            print(f"[plan] LLM planning failed ({exc}); using fallback plan.")
+    if llm is not None and material:
+        data = _ask_json(llm, (
+            "You are the DALI onboarding planner. Reverse-engineer this analysis "
+            "into a plan of 4-10 steps, starting from the result that must be "
+            "reproduced and working back to the input data.\n"
+            f"{PLAIN_WORDS_RULE}\n"
+            'Reply ONLY {"steps": [ ... ]} where each step is\n'
+            '  {"id": short-kebab-id, "description": what this step does in plain '
+            'words, "command": shell command runnable from the workspace root (empty '
+            'string if a human has to do it), "check": how success is verified, '
+            '"depends_on": [ids of earlier steps only], '
+            '"benchmarks": [{"quantity": str, "value": number or [min, max], '
+            '"unit": str, "source": the path from the [brackets] of the material '
+            'block you took it from"}]}\n'
+            "Hard rule for benchmarks: quote only numbers that appear verbatim in the "
+            "material, always with their source path; if a step has no such number, "
+            "return an empty list instead of guessing one.\n"
+            f"Goal: {summary.get('goal', '')}\n"
+            f"Result to reproduce: {summary.get('result', '')}\n"
+            f"Route: {summary.get('plan', '')}\n\nMaterial:\n{material}"
+        ))
+        parsed = data.get("steps") if isinstance(data, dict) else data
+        if isinstance(parsed, list):
+            plan = _normalise_plan(parsed)
     if not plan:
-        plan = [
-            {"description": "reproduce nominal result", "command": "", "check": "human confirms output matches reference"},
-            {"description": "run preselection", "command": "", "check": "exit code 0 and non-empty output"},
-            {"description": "run fit", "command": "", "check": "exit code 0 and converged"},
-        ]
+        plan = [dict(s, benchmarks=list(s["benchmarks"])) for s in _FALLBACK_PLAN]
+    n_bench = sum(len(s["benchmarks"]) for s in plan)
     return {"plan": plan, "step": 0, "loops": 0,
-            "checks": _check(state, "plan", len(plan) > 0, f"{len(plan)} steps")}
+            "checks": _check(state, "plan", bool(plan),
+                             f"{len(plan)} steps, {n_bench} benchmarks with sources")}
+
+
+def render_workflow_markdown(summary: dict, plan: list[dict]) -> str:
+    """Plain-language one-file view: goal, the result to land on, the route
+    backwards, and a table of steps with the golden benchmark for each."""
+    out = ["# Analysis workflow (DALI onboarding)\n",
+           "> Written by `dali-onboard` from the project brain. Machine-readable "
+           "version: `state/pipeline.yaml` (the source of truth); DAG: "
+           "`reports/pipeline-dag.dot` (`dot -Tsvg` it to see the picture).\n",
+           "## What this analysis is trying to do\n",
+           summary.get("goal", "(not summarised)"), "",
+           "## The result we have to land on\n",
+           summary.get("result", "(not summarised)"), "",
+           "## The plan, read backwards from the result\n",
+           "```", summary.get("plan", "(not summarised)"), "```", "",
+           "## Steps and golden benchmarks\n",
+           "| # | Step | How it is checked | Golden benchmark (from the docs) | Source |",
+           "|---|---|---|---|---|"]
+    for i, step in enumerate(plan):
+        deps = f" (after {', '.join(step['depends_on'])})" if step["depends_on"] else ""
+        command = f"\n  `{step['command']}`" if step["command"] else ""
+        if step["benchmarks"]:
+            bench, sources = [], []
+            for b in step["benchmarks"]:
+                unit = f" {b['unit']}" if b["unit"] else ""
+                bench.append(f"{b['quantity']}: **{b['value']}**{unit}")
+                sources.append(b["source"])
+            bench_cell = "<br>".join(bench)
+            source_cell = "<br>".join(dict.fromkeys(sources))
+        else:
+            bench_cell, source_cell = "_none extracted - human to supply_", "-"
+        out.append(f"| {i} | **{step['id']}**{deps} | {step['check']}{command} "
+                   f"| {bench_cell} | {source_cell} |")
+    out += ["",
+            "Benchmarks are marked `extracted-unverified` in `state/pipeline.yaml`: "
+            "the planner read them out of the documentation, and they are not "
+            "checked against a table until that step actually runs. A step with no "
+            "benchmark is validated by a person, never by a guessed number.", "",
+            "Rules: a failed check is fixed in the code or the config, never in an "
+            f"output or a reference value; max {MAX_LOOPS} attempts per step, then "
+            "escalate to a human."]
+    return "\n".join(out) + "\n"
+
+
+def _dot_label(step: dict) -> str:
+    return f"{step['id']}|{step['description'][:60]}".replace('"', "'").replace("\n", " ")
+
+
+def render_artifacts(state: State) -> dict:
+    """Write the workflow out for a human to read and edit. Deterministic: no
+    LLM, so re-running it on the same plan gives the same files."""
+    import yaml
+
+    workspace = Path(state.get("workspace") or os.getcwd())
+    (workspace / "reports").mkdir(parents=True, exist_ok=True)
+    (workspace / "state").mkdir(parents=True, exist_ok=True)
+
+    plan = state.get("plan", [])
+    pipeline = {
+        "defaults": {"max_attempts": MAX_LOOPS,
+                     "embedding_model": state.get("embedding_model", "")},
+        "summary": state.get("summary", {}),
+        "steps": [{
+            "id": s["id"],
+            "title": s["description"],
+            "command": s["command"],
+            "checks": [{"type": "human", "description": s["check"]}],
+            "benchmarks": s["benchmarks"],
+            "depends_on": s["depends_on"],
+            "status": "pending",
+        } for s in plan],
+    }
+    pipeline_path = workspace / "state" / "pipeline.yaml"
+    pipeline_path.write_text(
+        "# Pipeline single source of truth - written by dali-onboard.\n"
+        "# Benchmarks are reference numbers read out of the docs (see source);\n"
+        "# they stay 'extracted-unverified' until the step that checks them runs.\n"
+        "# Edit this file, then re-run dali-onboard to refresh the reports.\n"
+        + yaml.safe_dump(pipeline, sort_keys=False, width=100),
+        encoding="utf-8",
+    )
+
+    lines = ["digraph dali_workflow {",
+             "  graph[rankdir=LR]; node[shape=box, style=rounded];"]
+    lines += [f'  "{s["id"]}" [label="{_dot_label(s)}"];' for s in plan]
+    lines += [f'  "{dep}" -> "{s["id"]}";'
+              for s in plan for dep in s["depends_on"]]
+    lines.append("}")
+    dag_path = workspace / "reports" / "pipeline-dag.dot"
+    dag_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+    workflow_path = workspace / "WORKFLOW.md"
+    workflow_path.write_text(render_workflow_markdown(state.get("summary", {}), plan),
+                             encoding="utf-8")
+
+    artifacts = {"WORKFLOW.md": str(workflow_path),
+                 "state/pipeline.yaml": str(pipeline_path),
+                 "reports/pipeline-dag.dot": str(dag_path)}
+    n_bench = sum(len(s["benchmarks"]) for s in plan)
+    return {"artifacts": artifacts,
+            "checks": _check(state, "artifacts", workflow_path.exists(),
+                             f"{len(plan)} steps, {n_bench} benchmarks -> "
+                             f"{', '.join(artifacts)}")}
+
+
+def approve_plan(state: State) -> dict:
+    """Human gate: read the rendered workflow, then approve the plan, or edit
+    state/pipeline.yaml and rebuild from it."""
+    verdict = interrupt({
+        "ask": "Read WORKFLOW.md (the steps and their golden benchmarks). Approve the "
+               "plan, or edit state/pipeline.yaml and choose rebuild.",
+        "gate_options": ["approve", "rebuild"],
+        "artifacts": state.get("artifacts", {}),
+    })
+    verdict = verdict.get("verdict", "approve") if isinstance(verdict, dict) else str(verdict)
+    return {"checks": _check(state, "plan_test", verdict == "approve", f"user: {verdict}")}
 
 
 def execute(state: State) -> dict:
@@ -730,8 +1042,16 @@ def after_fetch(state) -> Literal["embed_and_chunk", "abort"]:
         else "embed_and_chunk"
 
 
-def after_brain_test(state) -> Literal["make_plan", "build_brain"]:
-    return "make_plan" if state["checks"]["brain_test"]["ok"] else "build_brain"
+def after_brain_test(state) -> Literal["summarize", "build_brain"]:
+    return "summarize" if state["checks"]["brain_test"]["ok"] else "build_brain"
+
+
+def after_summary_test(state) -> Literal["plan_dag", "build_brain"]:
+    return "plan_dag" if state["checks"]["summary_test"]["ok"] else "build_brain"
+
+
+def after_plan_test(state) -> Literal["execute", "build_brain"]:
+    return "execute" if state["checks"]["plan_test"]["ok"] else "build_brain"
 
 
 def after_validate(state) -> Literal["advance", "correct", "smoke_test"]:
@@ -748,8 +1068,9 @@ def after_advance(state) -> Literal["execute", "smoke_test"]:
 def build_graph(checkpointer=None):
     g = StateGraph(State)
     for fn in (get_inputs, check_agent, fetch_inputs, choose_embedding_model,
-               embed_and_chunk, build_brain, test_brain, make_plan, execute,
-               validate, correct, advance, smoke_test):
+               embed_and_chunk, build_brain, test_brain, summarize,
+               approve_summary, plan_dag, render_artifacts, approve_plan,
+               execute, validate, correct, advance, smoke_test):
         g.add_node(fn.__name__, fn)
 
     g.add_edge(START, "get_inputs")
@@ -762,8 +1083,15 @@ def build_graph(checkpointer=None):
     g.add_edge("choose_embedding_model", "embed_and_chunk")
     g.add_edge("embed_and_chunk", "build_brain")
     g.add_edge("build_brain", "test_brain")
-    g.add_conditional_edges("test_brain", after_brain_test)
-    g.add_edge("make_plan", "execute")
+    g.add_conditional_edges("test_brain", after_brain_test,
+                            {"summarize": "summarize", "build_brain": "build_brain"})
+    g.add_edge("summarize", "approve_summary")
+    g.add_conditional_edges("approve_summary", after_summary_test,
+                            {"plan_dag": "plan_dag", "build_brain": "build_brain"})
+    g.add_edge("plan_dag", "render_artifacts")
+    g.add_edge("render_artifacts", "approve_plan")
+    g.add_conditional_edges("approve_plan", after_plan_test,
+                            {"execute": "execute", "build_brain": "build_brain"})
     g.add_edge("execute", "validate")
     g.add_conditional_edges("validate", after_validate)
     g.add_edge("correct", "execute")
@@ -919,6 +1247,46 @@ def _confirm_workspace(workspace_dir: Path, assume_yes: bool) -> None:
     raise SystemExit(0)
 
 
+def _print_summary(summary: dict) -> None:
+    print("\n  -- What I think this analysis is " + "-" * 16)
+    print(f"  GOAL\n    {summary.get('goal', '(none)')}\n")
+    print(f"  RESULT TO LAND ON\n    {summary.get('result', '(none)')}\n")
+    print("  ROUTE, BACKWARDS FROM THE RESULT")
+    for line in str(summary.get("plan", "(none)")).splitlines() or ["(none)"]:
+        print(f"    {line}")
+    print("  " + "-" * 56)
+
+
+def _print_plan_table(plan: list[dict], artifacts: dict) -> None:
+    print("\n  -- Steps and golden benchmarks " + "-" * 24)
+    print(f"  {'#':<3} {'step':<18} {'after':<16} benchmark (read out of the docs)")
+    for i, step in enumerate(plan):
+        deps = ",".join(step.get("depends_on", [])) or "-"
+        benches = step.get("benchmarks") or []
+        if benches:
+            first = benches[0]
+            more = f" (+{len(benches) - 1} more)" if len(benches) > 1 else ""
+            unit = f" {first['unit']}" if first.get("unit") else ""
+            bench = f"{first['quantity']} = {first['value']}{unit}{more}"
+        else:
+            bench = "none extracted - human to supply"
+        print(f"  {i:<3} {step['id']:<18} {deps:<16} {bench[:58]}")
+    print("  " + "-" * 56)
+    for name, path in artifacts.items():
+        print(f"  wrote {name}: {path}")
+
+
+def _verdict_gate() -> str:
+    """approve / rebuild gate: Enter approves, r rebuilds."""
+    while True:
+        answer = input("  [Enter] = approve, r = rebuild: ").strip().lower()
+        if answer in ("", "a", "approve"):
+            return "approve"
+        if answer in ("r", "rebuild"):
+            return "rebuild"
+        print("  (press Enter to approve, or r to rebuild)")
+
+
 def run_interactive(workspace: str = "", thread_id: str = "dali-onboard",
                     assume_yes: bool = False) -> dict:
     """Terminal REPL driver: resumes each interrupt with human input."""
@@ -957,6 +1325,12 @@ def run_interactive(workspace: str = "", thread_id: str = "dali-onboard",
         elif prompt.get("brain_dir"):
             question = input("test question (empty to skip): ").strip()
             reply = {"question": question, "verdict": "approve"} if question else "approve"
+        elif prompt.get("summary"):
+            _print_summary(prompt["summary"])
+            reply = _verdict_gate()
+        elif prompt.get("artifacts"):
+            _print_plan_table(out.get("plan", []), prompt["artifacts"])
+            reply = _verdict_gate()
         elif "fetch" in prompt.get("ask", "").lower() or "could not fetch" in prompt.get("ask", ""):
             choice = input("  [r]etry / [n]ew paths / [a]bort > ").strip().lower() or "retry"
             reply = {"choice": {"r": "retry", "n": "new paths", "a": "abort"}.get(
@@ -975,10 +1349,296 @@ def run_interactive(workspace: str = "", thread_id: str = "dali-onboard",
     for name, chk in out.get("checks", {}).items():
         mark = "PASS" if chk["ok"] else "FAIL"
         print(f"  [{mark}] {name}: {chk['evidence'][:120]}")
+    if out.get("artifacts"):
+        print("\nWorkflow written to:")
+        for name, path in out["artifacts"].items():
+            print(f"  {name}: {path}")
     failed = [n for n, c in out.get("checks", {}).items() if not c["ok"]]
     if failed:
         raise SystemExit(1)
     return out
+
+
+# ---- offline demo ----------------------------------------------------------
+# A scripted session that drives the real nodes with the LLM and the embedding
+# model stubbed out, so a newcomer can watch the whole onboarding - brain,
+# summary gate, plan gate, WORKFLOW.md - in seconds, offline, without API keys.
+# The numbers below are invented for a fictional "Aurora" analysis; they exist
+# only so the demo has something to retrieve.
+
+DEMO_PAPER = """# Aurora D0 CP violation tutorial (demo)
+
+We measure CP violation in D0 -> K+ K- pi+ pi- and D0 -> pi+ pi+ pi- pi- with
+the Run 2 sample, 2015 to 2018 in both magnet polarities.
+
+The statistical sensitivity of the measurement is 3.4e-4 for the four-pion
+mode and 8.1e-4 for the KKpipi mode.
+
+## Stages
+
+1. Skimming: keep one candidate per event, require PNNK above 0.05 and a D0
+   mass between 1.84 and 1.89 GeV.
+2. Signal extraction: build the angular variables, bin the phase space at the
+   phi(1019.455 MeV), rho(775.49 MeV) and K*(896 MeV) pole masses.
+3. Efficiency: reweight simulation with a gradient-boosting model; the weight
+   uncertainty plateaus at 0.007 for weights above 0.03, from 100 bootstrap
+   toys.
+4. Mass fits: count signal in each bin. The 2015 MagUp KKpipi signal yield is
+   65215 candidates.
+5. CP asymmetries: assemble the binned asymmetries and quote the sensitivity.
+6. Systematics: kaon reconstruction asymmetry 0.3e-4, peaking background 1e-5,
+   control sample 1.0e-4.
+"""
+
+DEMO_CODE = {
+    "selector.py": '"""Offline selection."""\n'
+                   'PNNK_MIN = 0.05\nD0_MASS = (1.84, 1.89)\n'
+                   'def select(tree):\n    return tree\n',
+    "binning.py": '"""Phase-space binning."""\n'
+                  'PHI_MASS = 1019.455\nRHO_MASS = 775.49\nKSTAR_MASS = 896.0\n'
+                  'def bin_phase_space(tree):\n    return tree\n',
+    "simfit.py": '"""1D mass fits for the signal yield."""\n'
+                 'def fit(tree):\n    return 0.0\n',
+}
+
+DEMO_SUMMARY = {
+    "goal": "We check whether matter and antimatter versions of the D0 decay at "
+            "slightly different rates into four lighter particles. A difference "
+            "would be CP violation, one of the clues for why the universe holds "
+            "matter at all.",
+    "result": "The number a reproduction has to land on is the statistical "
+              "sensitivity: 3.4e-4 for the four-pion mode and 8.1e-4 for the "
+              "KKpipi mode. The final binned asymmetries are not in the demo "
+              "notes, so they cannot be checked.",
+    "plan": "sensitivity  <-  binned CP asymmetries\n"
+            "asymmetries  <-  mass fits (signal counts per bin)\n"
+            "fits         <-  efficiency model + binned angular variables\n"
+            "angles       <-  skimmed candidates (selection cuts)\n"
+            "skimming     <-  input ntuples",
+}
+
+DEMO_PLAN = [
+    {"id": "environment", "description": "build the code so later steps run in a known state",
+     "command": "cd code && python -c \"import selector, binning, simfit\"",
+     "check": "the three modules import cleanly", "depends_on": [], "benchmarks": []},
+    {"id": "skimming", "description": "apply the selection and keep the surviving candidates",
+     "command": "python selector.py", "check": "cut values in the code match the notes",
+     "depends_on": ["environment"],
+     "benchmarks": [
+         {"quantity": "PNNK threshold", "value": 0.05, "unit": "none",
+          "source": "paper/main.md"},
+         {"quantity": "D0 mass window", "value": [1.84, 1.89], "unit": "GeV",
+          "source": "paper/main.md"}]},
+    {"id": "signal", "description": "compute the angles and bin the phase space",
+     "command": "python binning.py", "check": "bin edges sit at the resonance poles",
+     "depends_on": ["skimming"],
+     "benchmarks": [
+         {"quantity": "phi pole mass", "value": 1019.455, "unit": "MeV",
+          "source": "paper/main.md"},
+         {"quantity": "rho pole mass", "value": 775.49, "unit": "MeV",
+          "source": "paper/main.md"},
+         {"quantity": "K*(892) pole mass", "value": 896, "unit": "MeV",
+          "source": "paper/main.md"}]},
+    {"id": "efficiency", "description": "learn from simulation how often a candidate is detected",
+     "command": "", "check": "a human confirms the weight uncertainty plateau",
+     "depends_on": ["signal"],
+     "benchmarks": [
+         {"quantity": "weight uncertainty plateau", "value": 0.007, "unit": "none",
+          "source": "paper/main.md"},
+         {"quantity": "bootstrap toys", "value": 100, "unit": "toys",
+          "source": "paper/main.md"}]},
+    {"id": "fit", "description": "fit the mass peak and count the signal in each bin",
+     "command": "python simfit.py", "check": "yields agree with the notes",
+     "depends_on": ["signal", "efficiency"],
+     "benchmarks": [
+         {"quantity": "2015 MagUp KKpipi signal yield", "value": 65215, "unit": "candidates",
+          "source": "paper/main.md"}]},
+    {"id": "cpv", "description": "turn the counts into the physics number",
+     "command": "", "check": "sensitivity matches the notes", "depends_on": ["fit"],
+     "benchmarks": [
+         {"quantity": "sensitivity, four-pion mode", "value": 3.4e-4, "unit": "none",
+          "source": "paper/main.md"},
+         {"quantity": "sensitivity, KKpipi mode", "value": 8.1e-4, "unit": "none",
+          "source": "paper/main.md"}]},
+    {"id": "systematics", "description": "check the signal is not a detector effect",
+     "command": "", "check": "each assigned uncertainty matches the notes",
+     "depends_on": ["cpv"],
+     "benchmarks": [
+         {"quantity": "kaon reconstruction asymmetry", "value": 0.3e-4, "unit": "none",
+          "source": "paper/main.md"},
+         {"quantity": "peaking background", "value": 1e-5, "unit": "none",
+          "source": "paper/main.md"},
+         {"quantity": "control sample", "value": 1.0e-4, "unit": "none",
+          "source": "paper/main.md"}]},
+]
+
+
+class _DemoLLM:
+    """Scripted stand-in for the chat model: answers the planner prompt with
+    DEMO_PLAN so the demo shows the real node logic without a network call."""
+
+    def invoke(self, messages):
+        from langchain_core.messages import HumanMessage
+
+        prompt = next((m.content for m in messages if isinstance(m, HumanMessage)), "")
+        if '"steps"' in prompt:
+            payload = {"steps": [
+                {k: v for k, v in step.items() if k != "confidence"} for step in DEMO_PLAN
+            ]}
+        else:
+            payload = dict(DEMO_SUMMARY)
+        return type("Reply", (), {"content": json.dumps(payload)})()
+
+
+DEMO_EMBEDDING_NAME = "demo-hashing-embeddings"
+
+
+class _HashedEmbeddings:
+    """Word-hash embeddings: deterministic, offline, no model download. Retrieval
+    still behaves (shared words score highest), which is all the demo needs."""
+
+    DIMS = 256
+
+    def _one(self, text: str) -> list[float]:
+        import hashlib
+        import math
+
+        vector = [0.0] * self.DIMS
+        for word in "".join(c if c.isalnum() else " " for c in text.lower()).split():
+            slot = int(hashlib.md5(word.encode()).hexdigest()[:8], 16) % self.DIMS
+            vector[slot] += 1.0
+        norm = math.sqrt(sum(v * v for v in vector)) or 1.0
+        return [v / norm for v in vector]
+
+    def embed_documents(self, texts):
+        return [self._one(t) for t in texts]
+
+    def embed_query(self, text):
+        return self._one(text)
+
+    def embed_query_with_scores(self, text):  # pragma: no cover - interface parity
+        return self.embed_query(text)
+
+
+def run_demo(workspace: str = "", verbose: bool = True) -> dict:
+    """Drive the real nodes end to end on a throwaway project, offline.
+
+    Stubs only the two things that need a download or a key: the embedding model
+    and the chat model. Everything else - chunking, the chroma brain, the
+    retrieval behind the summary, plan validation, artifact rendering - is the
+    production code path.
+    """
+    # The embedding override stays set for the caller too: the checks a caller
+    # runs afterwards (the demo tests, dali-onboard-demo) query the same brain,
+    # and only this demo ever names the demo model.
+    previous_override = os.environ.get("DALI_EMBEDDING_CLASS")
+    os.environ["DALI_EMBEDDING_CLASS"] = f"{__name__}:_HashedEmbeddings"
+    workspace_dir = Path(workspace or os.getcwd()).resolve()
+    project = workspace_dir / ".dali" / "onboard" / "demo-project"
+    (project / "paper").mkdir(parents=True, exist_ok=True)
+    (project / "code").mkdir(parents=True, exist_ok=True)
+    (project / "paper" / "main.md").write_text(DEMO_PAPER, encoding="utf-8")
+    for name, text in DEMO_CODE.items():
+        (project / "code" / name).write_text(text, encoding="utf-8")
+
+    def say(text: str = "") -> None:
+        if verbose:
+            print(text, flush=True)
+
+    real_llm = _get_llm
+    globals()["_get_llm"] = _DemoLLM
+    state: State = {"workspace": str(project),
+                    "paper_path": str(project / "paper" / "main.md"),
+                    "code_path": str(project / "code"),
+                    "autonomous": False,
+                    "embedding_model": DEMO_EMBEDDING_NAME}
+    try:
+        say("\n  [1/6] chunking the paper and the code, building the brain")
+        state.update(embed_and_chunk(state))
+        say(f"         {state['checks']['chunks']['evidence']}")
+        state.update(build_brain(state))
+        say(f"         {state['checks']['brain']['evidence']}")
+
+        say("\n  [2/6] asking the brain a question a person would ask")
+        answered, evidence = _brain_probe(state, "What is the statistical sensitivity?")
+        say(f"         answered={answered}  top hit: "
+            f"{evidence.splitlines()[0][:100] if answered else evidence}")
+
+        say("\n  [3/6] summarising the analysis from what the brain returns")
+        state.update(summarize(state))
+        _print_summary(state["summary"])
+
+        say("\n  [4/6] planning the steps and pulling the golden benchmarks out of the docs")
+        state.update(plan_dag(state))
+        say(f"         {state['checks']['plan']['evidence']}")
+
+        say("\n  [5/6] writing the workflow files")
+        state.update(render_artifacts(state))
+        _print_plan_table(state["plan"], state["artifacts"])
+
+        say("\n  [6/6] running one step through the execute -> validate loop")
+        # execute() would ask a human first (autonomous=False) and interrupt()
+        # needs a graph context, so the demo shows the gate it would ask and
+        # then runs the step as if it had been approved.
+        first = state["plan"][0]
+        say(f"         gate it would ask: run step 1/{len(state['plan'])}: "
+            f"{first['description']}? [run|skip|stop]  -> demo answers: run")
+        state["step"] = 0
+        state.update(execute({**state, "autonomous": True}))
+        state.update(validate(state))
+        say(f"         step {first['id']!r}: rc="
+            f"{state['last_result'].get('returncode')}, "
+            f"validate={state['checks']['validate_0']['ok']}")
+    finally:
+        globals()["_get_llm"] = real_llm
+
+    say("")
+    return state
+
+
+def _restore_embedding_override(previous: Optional[str]) -> None:
+    if previous is None:
+        os.environ.pop("DALI_EMBEDDING_CLASS", None)
+    else:
+        os.environ["DALI_EMBEDDING_CLASS"] = previous
+
+
+def run_demo_cli(workspace: str = "") -> dict:
+    """Console-script entry point for `dali-onboard-demo`."""
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        prog="dali-onboard-demo",
+        description="Watch DALI onboarding work, offline: no API keys, no model download.")
+    parser.add_argument("--workspace", default=workspace or ".",
+                        help="Where the throwaway demo project is written.")
+    parser.add_argument("--quiet", action="store_true", help="Only the final checks.")
+    args = parser.parse_args()
+    previous = os.environ.get("DALI_EMBEDDING_CLASS")
+    state = run_demo(workspace=args.workspace, verbose=not args.quiet)
+    checks = dict(state.get("checks", {}))
+    # the demo brain is only reachable through the demo model, so query it
+    # before handing the environment back
+    answered = _demo_probe_ok(state)
+    checks["brain_probe"] = {
+        "ok": answered,
+        "evidence": "the brain answers a question about its own project",
+    }
+    _restore_embedding_override(previous)
+    print("\nChecks:")
+    for name, chk in checks.items():
+        print(f"  [{'PASS' if chk['ok'] else 'FAIL'}] {name}: {chk['evidence'][:110]}")
+    if any(not c["ok"] for c in checks.values()):
+        raise SystemExit(1)
+    print("\nOpen the result: "
+          f"{Path(state['workspace']) / 'WORKFLOW.md'}")
+    return state
+
+
+def _demo_probe_ok(state: State) -> bool:
+    """The demo must be able to answer a real question from its own brain."""
+    answered, evidence = _brain_probe(state, "What is the statistical sensitivity?")
+    return answered and "paper/main.md" in evidence
 
 
 def run_interactive_cli(workspace: str = "") -> dict:
